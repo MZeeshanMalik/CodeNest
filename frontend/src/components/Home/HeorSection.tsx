@@ -29,6 +29,8 @@ function HeorSection() {
             src="/programmer.svg"
             alt="Knowledge Sharing Illustration"
             className="max-w-full h-auto"
+            width={500}
+            height={500}
           />
         </div>
       </div>

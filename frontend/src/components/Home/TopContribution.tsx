@@ -53,6 +53,8 @@ function TopContribution() {
               src={user.image}
               alt={user.name}
               className="w-20 h-20 rounded-full border-2 border-gray-300 object-cover aspect-square"
+              width={80}
+              height={80}
             />
             <h3 className="mt-3 text-lg font-semibold">{user.name}</h3>
             <p className="text-sm text-gray-500">{user.username}</p>
