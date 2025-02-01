@@ -66,7 +66,7 @@ function TestimonialSlider() {
               key={index}
               className="w-80 bg-white p-6 rounded-lg shadow-md flex-shrink-0 hover:scale-105 transition-transform duration-300"
             >
-              <p className="text-gray-700 text-lg">"{testimonial.text}"</p>
+              <p className="text-gray-700 text-lg"> {testimonial.text}</p>
               <div className="flex items-center mt-4">
                 <Image
                   src={testimonial.image}

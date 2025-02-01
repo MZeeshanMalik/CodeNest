@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React from "react";
 
 function TopContribution() {
@@ -48,7 +49,7 @@ function TopContribution() {
               index === 0 ? "border-4 border-green-500" : ""
             }`}
           >
-            <img
+            <Image
               src={user.image}
               alt={user.name}
               className="w-20 h-20 rounded-full border-2 border-gray-300 object-cover aspect-square"

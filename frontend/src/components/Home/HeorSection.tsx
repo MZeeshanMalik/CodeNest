@@ -1,6 +1,7 @@
+import Image from "next/image";
 import React from "react";
 
-function HeorSection(props) {
+function HeorSection() {
   return (
     <section className="px-6 lg:px-16 py-16">
       <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between">
@@ -24,7 +25,7 @@ function HeorSection(props) {
 
         {/* Right Side (Image) */}
         <div className="lg:w-1/3 flex justify-center mt-10 lg:mt-0">
-          <img
+          <Image
             src="/programmer.svg"
             alt="Knowledge Sharing Illustration"
             className="max-w-full h-auto"

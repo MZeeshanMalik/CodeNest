@@ -1,0 +1,49 @@
+codeNest/
+│── public/                 # Static assets (images, favicons, etc.)
+│── src/
+│   ├── app/                # Next.js App Router
+│   │   ├── (auth)/         # Authentication pages (login, register)
+│   │   ├── (dashboard)/    # Admin dashboard (protected routes)
+│   │   ├── (questions)/    # Questions-related pages (ask, answer)
+│   │   ├── (blog)/         # Blog pages (list, details)
+│   │   ├── layout.tsx      # Root layout component
+│   │   ├── page.tsx        # Home page
+│   ├── components/         # Reusable UI components
+│   │   ├── common/         # Buttons, modals, cards, etc.
+│   │   ├── navbar/         # Navbar component
+│   │   ├── sidebar/        # Sidebar (admin panel)
+│   │   ├── footer/         # Footer component
+│   ├── features/           # Redux slices (state management)
+│   │   ├── authSlice.ts    # Authentication state
+│   │   ├── questionsSlice.ts # Q&A state management
+│   │   ├── blogSlice.ts    # Blog state management
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useAuth.ts      # Authentication hook
+│   │   ├── useFetch.ts     # API fetch hook
+│   ├── lib/                # Utility functions
+│   │   ├── axios.ts        # Axios instance for API calls
+│   │   ├── constants.ts    # Global constants
+│   │   ├── helpers.ts      # Helper functions
+│   ├── redux/              # Redux store setup
+│   │   ├── store.ts        # Redux store
+│   │   ├── rootReducer.ts  # Root reducer
+│   ├── services/           # API services (fetching data)
+│   │   ├── authService.ts  # Authentication API
+│   │   ├── questionService.ts # Questions API
+│   │   ├── blogService.ts  # Blogs API
+│   ├── styles/             # Global and module CSS
+│   │   ├── globals.css     # Global styles
+│   │   ├── tailwind.css    # Tailwind CSS config
+│   ├── types/              # TypeScript types
+│   │   ├── auth.ts         # Authentication types
+│   │   ├── question.ts     # Question-related types
+│   │   ├── blog.ts         # Blog-related types
+│   ├── utils/              # Utility functions
+│   │   ├── formatDate.ts   # Date formatting
+│   │   ├── sanitizeInput.ts # Input sanitization
+│── .env                    # Environment variables
+│── next.config.js           # Next.js config
+│── tailwind.config.js       # Tailwind CSS config
+│── tsconfig.json            # TypeScript config
+│── package.json             # Dependencies
+│── README.md                # Project documentation
