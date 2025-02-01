@@ -37,6 +37,9 @@ const Navbar: React.FC = () => {
             <a href="/users" className="text-gray-500 hover:text-gray-700">
               Users
             </a>
+            <Link href="/" className="text-gray-500 hover:text-gray-700">
+              contact us
+            </Link>
           </div>
 
           {/* Search Bar (Desktop) */}
