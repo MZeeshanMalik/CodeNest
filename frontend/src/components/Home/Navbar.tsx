@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
             <a href="/users" className="text-gray-500 hover:text-gray-700">
               Users
             </a>
-            <Link href="/" className="text-gray-500 hover:text-gray-700">
+            <Link href="/contact" className="text-gray-500 hover:text-gray-700">
               contact us
             </Link>
           </div>
@@ -74,7 +74,10 @@ const Navbar: React.FC = () => {
 
           {/* User Actions (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
-            <a href="/login" className="text-gray-500 hover:text-gray-700">
+            <a
+              href="/login"
+              className="text-stone-800 px-4 py-2 hover:text-gray-100 rounded-md hover:bg-btnColor "
+            >
               Log in
             </a>
             <a
