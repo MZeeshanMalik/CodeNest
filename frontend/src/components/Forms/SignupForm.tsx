@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,24 +8,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/UI/card";
 import { Label } from "@/components/UI/label";
 import { cn } from "@/lib/utils";
 import { SyncLoader } from "react-spinners";
-
-const signupSchema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email format"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirmPassword: z
-      .string()
-      .min(6, "Confirm Password must be at least 6 characters"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"], // path of error
-  });
+import { signupSchema } from "@/types/signupSchema";
+import { useAuthSignup } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import SocialLoginButton from "../UI/SocialLoginButton";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupForm() {
+  const { toast } = useToast();
+
   const {
     register,
     handleSubmit,
@@ -34,15 +25,34 @@ export default function SignupForm() {
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
   });
-
-  const [loading, setLoading] = useState(false);
+  const signupMutation = useAuthSignup();
 
   const onSubmit = (data: SignupFormValues) => {
-    setLoading(true);
-    setTimeout(() => {
-      console.log("Signed up with: ", data);
-      setLoading(false);
-    }, 2000);
+    signupMutation.mutate(data, {
+      onSuccess: (data) => {
+        localStorage.setItem("user", JSON.stringify(data?.data));
+
+        toast({
+          title: "Success",
+          description: "✅ Signup successful! Welcome to Code Nest",
+          variant: "success",
+        });
+        window.location.href = "/";
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (error: any) =>
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Signup failed!",
+          variant: "destructive",
+        }),
+    });
+  };
+  const handleAuthWithGoogle = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_APP_API_URL}/api/v1/users/auth/google`;
+  };
+  const handleAuthWithGithub = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_APP_API_URL}/api/v1/users/auth/github`;
   };
 
   return (
@@ -121,10 +131,33 @@ export default function SignupForm() {
             <Button
               type="submit"
               className="w-full bg-btnColor hover:bg-btnHoverCol"
+              disabled={signupMutation.isPending}
             >
-              {loading ? <SyncLoader color="#f1f3f2" /> : "Sign Up"}
+              {signupMutation.isPending ? (
+                <SyncLoader color="#f1f3f2" />
+              ) : (
+                "Sign Up"
+              )}
             </Button>
           </form>
+          <div>
+            <p className="mt-4 text-center">
+              Already have an account?{" "}
+              <a href="/login" className="text-btnColor hover:underline">
+                Login
+              </a>
+            </p>
+          </div>
+          <div className="mt-4 space-y-2">
+            <SocialLoginButton
+              provider="google"
+              onClick={handleAuthWithGoogle}
+            />
+            <SocialLoginButton
+              provider="github"
+              onClick={handleAuthWithGithub}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

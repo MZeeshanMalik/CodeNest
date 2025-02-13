@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
     required: [true, "please provide email"],
     validate: [validator.isEmail, "please provide a valid email"],
   },
+  googleId: { type: String, unique: true, sparse: true },
+  githubId: { type: String, unique: true, sparse: true },
   photo: {
     type: String,
     default: "default.jpg",
@@ -31,8 +33,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     // minlength: [8, 'minimum length should be 8'],
     maxlength: [1000, "maximum length should be 20"],
-    required: [true, "password is required"],
     select: false,
+    required: function (this: any) {
+      // Require password only if not signing up via Google
+      return !this.googleId;
+    },
   },
   confirmPassword: {
     type: String,
@@ -105,4 +110,5 @@ userSchema.methods.passwordResetToken = function () {
 };
 const User = mongoose.model("User", userSchema);
 
-module.exports = User;
+// module.exports = User;
+export default User;

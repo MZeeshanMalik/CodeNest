@@ -1,10 +1,17 @@
 "use client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuthLogout } from "@/hooks/useAuth";
+import { logout } from "@/lib/auth";
+import { useAuth } from "@/services/AuthProvider";
 import Link from "next/link";
 import React, { useState } from "react";
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const logoutMutation = useAuthLogout();
+  const { toast } = useToast();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -12,6 +19,16 @@ const Navbar: React.FC = () => {
 
   const toggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
+  };
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+    logout();
+    toast({
+      title: "Success",
+      description: "✅ Logout successful!",
+      variant: "success",
+    });
   };
 
   return (
@@ -72,8 +89,41 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
+          {/* {if there is already logged in user} */}
+          {user ? (
+            <div className="hidden md:flex items-center space-x-4">
+              <Link
+                href="/"
+                className="text-stone-800 px-4 py-2 hover:text-gray-100 rounded-md hover:bg-btnColor "
+              >
+                {user.name}
+              </Link>
+              <span
+                // href="/signup"
+                onClick={handleLogout}
+                className="bg-btnColor text-white px-4 py-2 rounded-md hover:bg-btnHoverCol cursor-pointer"
+              >
+                Logout
+              </span>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center space-x-4">
+              <a
+                href="/login"
+                className="text-stone-800 px-4 py-2 hover:text-gray-100 rounded-md hover:bg-btnColor "
+              >
+                Log in
+              </a>
+              <a
+                href="/signup"
+                className="bg-btnColor text-white px-4 py-2 rounded-md hover:bg-btnHoverCol"
+              >
+                Sign up
+              </a>
+            </div>
+          )}
           {/* User Actions (Desktop) */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* <div className="hidden md:flex items-center space-x-4">
             <a
               href="/login"
               className="text-stone-800 px-4 py-2 hover:text-gray-100 rounded-md hover:bg-btnColor "
@@ -86,7 +136,7 @@ const Navbar: React.FC = () => {
             >
               Sign up
             </a>
-          </div>
+          </div> */}
 
           {/* Mobile Menu Button and Search Button */}
           <div className="flex items-center md:hidden space-x-4">
@@ -185,7 +235,7 @@ const Navbar: React.FC = () => {
             </svg>
           </button>
         </div>
-        <div className="px-2 pt-2 pb-3 space-y-1">
+        {/* <div className="px-2 pt-2 pb-3 space-y-1">
           <a
             href="/questions"
             className="block text-gray-500 hover:text-gray-700"
@@ -198,12 +248,95 @@ const Navbar: React.FC = () => {
           <a href="/users" className="block text-gray-500 hover:text-gray-700">
             Users
           </a>
-          <a href="/login" className="block text-gray-500 hover:text-gray-700">
-            Log in
+          {user ? (
+            <>
+              <a
+                href="/login"
+                className="block text-gray-500 hover:text-gray-700"
+              >
+                {user.name}
+              </a>
+              <span
+                onClick={handleLogout}
+                className="block text-blue-500 hover:text-blue-700"
+              >
+                Logout
+              </span>
+            </>
+          ) : (
+            <>
+              <a
+                href="/login"
+                className="block text-gray-500 hover:text-gray-700"
+              >
+                Log in
+              </a>
+              <a
+                href="/signup"
+                className="block text-blue-500 hover:text-blue-700"
+              >
+                Sign up
+              </a>
+            </>
+          )}
+        </div> */}
+        <div className="px-4 pt-4 pb-6 space-y-2 bg-white shadow-lg rounded-lg">
+          {/* Navigation Links */}
+          <a
+            href="/questions"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+          >
+            Questions
           </a>
-          <a href="/signup" className="block text-blue-500 hover:text-blue-700">
-            Sign up
+          <a
+            href="/tags"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+          >
+            Tags
           </a>
+          <a
+            href="/users"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+          >
+            Users
+          </a>
+
+          {/* Conditional Rendering for User State */}
+          {user ? (
+            <>
+              {/* User Profile Link */}
+              <a
+                href="/profile"
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+              >
+                {user.name}
+              </a>
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Login Link */}
+              <a
+                href="/login"
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+              >
+                Log in
+              </a>
+              {/* Signup Link */}
+              <a
+                href="/signup"
+                className="block px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 ease-in-out"
+              >
+                Sign up
+              </a>
+            </>
+          )}
         </div>
       </div>
     </nav>

@@ -11,7 +11,8 @@ const handleCastErrorDB = (err: AppErrorTypes) => {
 const handleDuplicateFieldDb = (err: AppErrorTypes) => {
   const val = Object.values(err.keyValue)[0];
   // console.log(val)
-  const message = `Duplicate value in field: ${val}`;
+  // const message = `Duplicate value in field: ${val}`;
+  const message = `${val} already exists in our database, please use another value.`;
   return new AppError(message, 400);
 };
 // handle validation error
@@ -30,6 +31,7 @@ const handlejwtError = (err: AppErrorTypes) => {
 
 // send error for development
 const sendErrorDev = (err: AppErrorTypes, req: Request, res: Response) => {
+  console.log(err);
   if (req.originalUrl.startsWith("/api")) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -38,35 +40,53 @@ const sendErrorDev = (err: AppErrorTypes, req: Request, res: Response) => {
       error: err,
     });
   } else {
-    res.status(err.statusCode).render("error", {
-      title: "something went wrong",
-      msg: err.message,
-    });
-  }
-};
-
-// Handle production error
-const sendErrorPro = (err: AppErrorTypes, req: Request, res: Response) => {
-  if (req.originalUrl.startsWith("/api")) {
     res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
-      // stack: err.stack,
+      stack: err.stack,
       error: err,
     });
-    // opreational trusted errors send message to clint
+  }
+};
+// Handle production error
+// const sendErrorPro = (err: AppErrorTypes, req: Request, res: Response) => {
+//   if (req.originalUrl.startsWith("/api")) {
+//     res.status(err.statusCode).json({
+//       status: err.status,
+//       message: err.message,
+//       error: err,
+//     });
+//     // opreational trusted errors send message to clint
+//     if (err.isOpreational) {
+//       res.status(err.statusCode).json({
+//         status: err.status,
+//         message: err.message,
+//       });
+//     }
+//     // programming errors not want to leak details of error
+//     else {
+//       // console.error(err)
+//       res.status(err.statusCode).json({
+//         status: err.status,
+//         message: "Something went wrong",
+//       });
+//     }
+//   }
+// };
+const sendErrorPro = (err: AppErrorTypes, req: Request, res: Response) => {
+  console.log("Error is", err);
+  if (req.originalUrl.startsWith("/api")) {
     if (err.isOpreational) {
-      res.status(err.statusCode).render("error", {
-        title: "something went wrong",
-        msg: err.message,
+      // Operational errors (send specific error details)
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
       });
-    }
-    // programming errors not want to leak details of error
-    else {
-      // console.error(err)
-      res.status(err.statusCode).render("error", {
-        title: "something went wrong",
-        msg: "please try again later",
+    } else {
+      // Programming errors (hide details from client)
+      return res.status(500).json({
+        status: "error",
+        message: "Something went wrong. Please try again later.",
       });
     }
   }

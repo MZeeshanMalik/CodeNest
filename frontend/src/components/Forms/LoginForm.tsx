@@ -1,24 +1,20 @@
 "use client";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Input } from "@/components/UI/input";
 import { Button } from "@/components/UI/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/UI/card";
 import { Label } from "@/components/UI/label";
 import { cn } from "@/lib/utils";
-// import { Loader2 } from "lucide-react";
 import { SyncLoader } from "react-spinners";
-
-const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { LoginFormValues, loginSchema } from "@/types/loginTypes";
+import { useAuthLogin } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import SocialLoginButton from "../UI/SocialLoginButton";
 
 export default function LoginForm() {
+  const { toast } = useToast();
+  const loginMutation = useAuthLogin();
   const {
     register,
     handleSubmit,
@@ -27,14 +23,36 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  const [loading, setLoading] = useState(false);
-
   const onSubmit = (data: LoginFormValues) => {
-    setLoading(true);
-    setTimeout(() => {
-      console.log("Logged in with: ", data);
-      setLoading(false);
-    }, 2000);
+    loginMutation.mutate(data, {
+      onSuccess: (data) => {
+        localStorage.setItem("user", JSON.stringify(data?.data));
+        toast({
+          title: "Success",
+          description: "✅ Login successful! Welcome to Code Nest",
+          variant: "success",
+        });
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (error: any) => {
+        console.log(error);
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Login failed!",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleAuthWithGoogle = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_APP_API_URL}/api/v1/users/auth/google`;
+  };
+  const handleAuthWithGithub = () => {
+    window.location.href = `${process.env.NEXT_PUBLIC_APP_API_URL}/api/v1/users/auth/github`;
   };
 
   return (
@@ -80,11 +98,40 @@ export default function LoginForm() {
             <Button
               type="submit"
               className="w-full bg-btnColor hover:bg-btnHoverCol"
-              // disabled={loading}
+              disabled={loginMutation.isPending}
             >
-              {loading ? <SyncLoader color="#f1f3f2" /> : "Login"}
+              {loginMutation.isPending ? (
+                <SyncLoader color="#f1f3f2" />
+              ) : (
+                "Login"
+              )}
             </Button>
           </form>
+          <div>
+            <p className="mt-4 text-center">
+              Forgot your password?{" "}
+              <a
+                href="/forgot-password"
+                className="text-btnColor hover:underline"
+              >
+                Reset password
+              </a>{" "}
+              <span>or</span>{" "}
+              <a href="/signup" className="text-btnColor hover:underline">
+                Sign up
+              </a>
+            </p>
+          </div>
+          <div className="mt-4 space-y-2">
+            <SocialLoginButton
+              provider="google"
+              onClick={handleAuthWithGoogle}
+            />
+            <SocialLoginButton
+              provider="github"
+              onClick={handleAuthWithGithub}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>
