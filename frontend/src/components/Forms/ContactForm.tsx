@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Input } from "@/components/UI/input";
 import { Button } from "@/components/UI/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/UI/card";
@@ -11,14 +10,9 @@ import { Label } from "@/components/UI/label";
 import { cn } from "@/lib/utils";
 import { SyncLoader } from "react-spinners";
 import { Textarea } from "../UI/textarea";
-
-const contactSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email format"),
-  message: z.string().min(10, "Message must be at least 10 characters"),
-});
-
-type ContactFormValues = z.infer<typeof contactSchema>;
+import { ContactFormValues, contactSchema } from "@/types/contactTypes";
+import { usePostContact } from "@/hooks/useContact";
+import { toast } from "@/hooks/use-toast";
 
 export default function ContactForm() {
   const {
@@ -28,13 +22,32 @@ export default function ContactForm() {
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
   });
-
+  const contactMutation = usePostContact();
   const [loading, setLoading] = useState(false);
 
   const onSubmit = (data: ContactFormValues) => {
     setLoading(true);
+
     setTimeout(() => {
-      console.log("Contact form submitted with: ", data);
+      contactMutation.mutate(data, {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description:
+              "✅ Contact form submitted successfully! we will get back to you soon.",
+            variant: "success",
+          });
+          console.log("Contact form submitted successfully");
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: "❌ Error submitting contact form! Try again later.",
+            variant: "destructive",
+          });
+          console.log("Error submitting contact form: ", error);
+        },
+      });
       setLoading(false);
     }, 2000);
   };

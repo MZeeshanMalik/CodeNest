@@ -40,8 +40,10 @@ export default function LoginForm() {
       onError: (error: any) => {
         console.log(error);
         toast({
-          title: "Error",
-          description: error.response?.data?.message || "Login failed!",
+          title: "Internal server error.",
+          description:
+            error.response?.data?.message ||
+            "Login failed! Try again later.Sorry for inconvience.",
           variant: "destructive",
         });
       },

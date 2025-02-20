@@ -1,11 +1,12 @@
-import cookieParser from "cookie-parser";
 import express, { Request, Response } from "express";
-const globalErrorHandler = require("./middlewares/errorHandler");
-// import {globalErrorHandler} from "./middlewares/errorHandler";
-const userRouter = require("./router/userRoutes.ts");
-// import userRouter from "./router/userRoutes";
-const cors = require("cors");
 const app = express();
+// import {globalErrorHandler} from "./middlewares/errorHandler";
+import cookieParser from "cookie-parser";
+const cors = require("cors");
+const globalErrorHandler = require("./middlewares/errorHandler");
+// import userRouter from "./router/userRoutes";
+const userRouter = require("./router/userRoutes.ts");
+const contactRouter = require("./router/contactRoutes");
 
 // app.use(cors());
 app.use(
@@ -19,6 +20,7 @@ app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/contact", contactRouter);
 
 app.use(express.json());
 

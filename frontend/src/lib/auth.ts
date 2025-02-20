@@ -1,4 +1,5 @@
 import { EmailFormValues } from "@/app/(auth)/forgot-password/page";
+import { ContactFormValues } from "@/types/contactTypes";
 import { LoginFormValues } from "@/types/loginTypes";
 import { SignupData } from "@/types/signupSchema";
 import { API_URL } from "@/utils/apiRoutes";
@@ -40,5 +41,10 @@ export const resetPassword = async (data: EmailFormValues, tokekn: string) => {
     { withCredentials: true }
   );
 
+  return response.data;
+};
+
+export const sendContactForm = async (data: ContactFormValues) => {
+  const response = await axios.post(`${API_URL}/api/v1/contact`, data);
   return response.data;
 };
