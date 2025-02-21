@@ -1,8 +1,8 @@
 import CategoriesSection from "@/components/Home/CategoriesSection";
 import FeatureSection from "@/components/Home/FeatureSection";
-import Footer from "@/components/Home/Footer";
+// import Footer from "@/components/Home/Footer";
 import HeorSection from "@/components/Home/HeorSection";
-import Navbar from "@/components/Home/Navbar";
+// import Navbar from "@/components/Home/Navbar";
 import TestimonialSlider from "@/components/Home/Testimonial";
 import TopContribution from "@/components/Home/TopContribution";
 import WhyJoinUs from "@/components/Home/WhyJoinUs";
