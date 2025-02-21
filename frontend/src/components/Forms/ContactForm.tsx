@@ -111,6 +111,7 @@ export default function ContactForm() {
             <Button
               type="submit"
               className="w-full bg-btnColor hover:bg-btnHoverCol"
+              disabled={loading}
             >
               {loading ? <SyncLoader color="#f1f3f2" /> : "Submit"}
             </Button>
