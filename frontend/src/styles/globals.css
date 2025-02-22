@@ -105,3 +105,130 @@
   border-top: none;
   border-radius: 0 0 4px 4px;
 }
+
+/* styles/globals.css */
+pre {
+  background-color: #eceaebcf !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow-x: auto !important;
+}
+
+code {
+  /* background-color: transparent !important; */
+}
+
+ul {
+  list-style-type: disc;
+  margin-left: 1.5rem !important;
+}
+
+ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem !important;
+}
+
+.resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background-color: #3b82f6;
+  cursor: se-resize;
+  border-radius: 2px;
+  border: 1px solid #fff;
+}
+.resize-handle {
+  position: absolute;
+  background-color: #3b82f6;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid #fff;
+}
+
+.resize-handle[data-position="top"] {
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: n-resize;
+}
+
+.resize-handle[data-position="bottom"] {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: s-resize;
+}
+
+.resize-handle[data-position="left"] {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: w-resize;
+}
+
+.resize-handle[data-position="right"] {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: e-resize;
+}
+
+.resize-handle[data-position="top-left"] {
+  top: 0;
+  left: 0;
+  cursor: nw-resize;
+}
+
+.resize-handle[data-position="top-right"] {
+  top: 0;
+  right: 0;
+  cursor: ne-resize;
+}
+
+.resize-handle[data-position="bottom-left"] {
+  bottom: 0;
+  left: 0;
+  cursor: sw-resize;
+}
+
+.resize-handle[data-position="bottom-right"] {
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+/* Add this to your global CSS or a CSS module */
+.tiptap p,
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap img {
+  text-align: left; /* Default alignment */
+}
+
+.tiptap p[data-text-align="center"],
+.tiptap h1[data-text-align="center"],
+.tiptap h2[data-text-align="center"],
+.tiptap h3[data-text-align="center"],
+.tiptap img[data-text-align="center"] {
+  text-align: center;
+}
+
+.tiptap p[data-text-align="right"],
+.tiptap h1[data-text-align="right"],
+.tiptap h2[data-text-align="right"],
+.tiptap h3[data-text-align="right"],
+.tiptap img[data-text-align="right"] {
+  text-align: right;
+}
+
+.tiptap p[data-text-align="justify"],
+.tiptap h1[data-text-align="justify"],
+.tiptap h2[data-text-align="justify"],
+.tiptap h3[data-text-align="justify"],
+.tiptap img[data-text-align="justify"] {
+  text-align: justify;
+}

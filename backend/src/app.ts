@@ -7,7 +7,8 @@ const globalErrorHandler = require("./middlewares/errorHandler");
 // import userRouter from "./router/userRoutes";
 const userRouter = require("./router/userRoutes.ts");
 const contactRouter = require("./router/contactRoutes");
-
+const blogRouter = require("./router/blogRoute");
+const commentRouter = require("./router/commentRoute");
 // app.use(cors());
 app.use(
   cors({
@@ -21,6 +22,8 @@ app.use(cookieParser());
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/contact", contactRouter);
+app.use("/api/v1/blog", blogRouter);
+app.use("/api/v1/comment", commentRouter);
 
 app.use(express.json());
 

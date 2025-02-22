@@ -5,11 +5,13 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.css";
+import "../styles/editor.css";
 import Navbar from "@/components/Home/Navbar";
 import Footer from "@/components/Home/Footer";
 import { useState } from "react";
 import { Toaster } from "@/components/UI/toaster";
 import { AuthProvider } from "@/services/AuthProvider";
+import { MantineProvider } from "@mantine/core";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,13 +41,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <Navbar />
-            <Toaster />
-            {children}
-            <Footer />
-          </AuthProvider>
-          <ReactQueryDevtools initialIsOpen={false} /> {/* Debugging Tool */}
+          <MantineProvider>
+            <AuthProvider>
+              <Navbar />
+              <Toaster />
+              {children}
+              <Footer />
+            </AuthProvider>
+            <ReactQueryDevtools initialIsOpen={false} /> {/* Debugging Tool */}
+          </MantineProvider>
         </QueryClientProvider>
       </body>
     </html>

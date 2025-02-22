@@ -14,7 +14,7 @@ import { AppErrorTypes } from "../utils/types/AppErrorTypes";
 import { NextFunction, Response, Request } from "express";
 import passport from "passport";
 import { sendForgotPasswordEmail } from "../utils/email";
-interface RequestWithUser extends Request {
+export interface RequestWithUser extends Request {
   user: UserTypes;
 }
 export const signtok = (id: string) => {
