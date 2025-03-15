@@ -51,6 +51,42 @@ export const ResizableImageExtension = Node.create({
       img.style.height = node.attrs.height;
       img.style.display = "block"; // Ensure the image is a block element
 
+      // Create a delete button
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "×";
+      deleteButton.style.position = "absolute";
+      deleteButton.style.top = "0";
+      deleteButton.style.right = "0";
+      deleteButton.style.background = "red";
+      deleteButton.style.color = "white";
+      deleteButton.style.border = "none";
+      deleteButton.style.borderRadius = "50%";
+      deleteButton.style.cursor = "pointer";
+      deleteButton.style.padding = "4px 8px";
+
+      // Handle delete button click
+      deleteButton.addEventListener("click", () => {
+        // if (typeof getPos === "function") {
+        //   editor.view.dispatch(
+        //     editor.view.state.tr.delete(getPos(), getPos() + node.nodeSize)
+        //   );
+        // }
+        if (typeof getPos === "function") {
+          // Call the custom handleClick function with the image src
+          // if (this.options.handleClick) {
+          //   editor.getAttributes("resizableImage").src, editor;
+          //   this.options.handleClick(node.attrs.src);
+          // }
+          if (this.options.handleClick) {
+            this.options.handleClick(node.attrs.src, editor);
+          }
+          // Remove the image from the editor
+          // editor.view.dispatch(
+          //   editor.view.state.tr.delete(getPos(), getPos() + node.nodeSize)
+          // );
+        }
+      });
+
       // Create resize handles for all sides and corners
       const createResizeHandle = (position, cursor) => {
         const handle = document.createElement("div");
@@ -120,6 +156,7 @@ export const ResizableImageExtension = Node.create({
       container.style.position = "relative";
       container.style.display = "inline-block";
       container.appendChild(img);
+      container.appendChild(deleteButton); // Add the delete button
       resizeHandles.forEach((handle) => container.appendChild(handle));
 
       // Resize logic

@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 const app = express();
 // import {globalErrorHandler} from "./middlewares/errorHandler";
 import cookieParser from "cookie-parser";
+import path from "path";
 const cors = require("cors");
 const globalErrorHandler = require("./middlewares/errorHandler");
 // import userRouter from "./router/userRoutes";
@@ -9,6 +10,12 @@ const userRouter = require("./router/userRoutes.ts");
 const contactRouter = require("./router/contactRoutes");
 const blogRouter = require("./router/blogRoute");
 const commentRouter = require("./router/commentRoute");
+const questionRouter = require("./router/questionRoute");
+// import imageRoutes from "./routes/imageRoutes";
+const imageRoutes = require("./router/imageRoutes");
+// import { isLoggedIn } from "./controllers/authenticationController";
+const authController = require("./controllers/authenticationController");
+
 // app.use(cors());
 app.use(
   cors({
@@ -19,11 +26,16 @@ app.use(
 // body parser raeding data from body in req.body
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
+app.use(authController.isLoggedIn);
+// Serve static files from the "uploads" directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/contact", contactRouter);
 app.use("/api/v1/blog", blogRouter);
 app.use("/api/v1/comment", commentRouter);
+app.use("/api/v1/images", imageRoutes);
+app.use("/api/v1/question", questionRouter);
 
 app.use(express.json());
 

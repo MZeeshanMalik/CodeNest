@@ -25,8 +25,8 @@ const languageMap: { [key: string]: any } = {
   css: langs.css(),
 };
 
-const CodeEditor = () => {
-  const [code, setCode] = useState("// Paste your code sample here...");
+const CodeEditor = ({ code, setCode }) => {
+  // const [code, setCode] = useState("// Paste your code sample here...");
   const [language, setLanguage] = useState("javascript");
 
   return (

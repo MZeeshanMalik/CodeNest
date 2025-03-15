@@ -103,8 +103,6 @@ const globalErrorHandler: ErrorRequestHandler = (
   res,
   next
 ) => {
-  console.log(err);
-
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
   if (process.env.Node_ENV === "devolpment") {

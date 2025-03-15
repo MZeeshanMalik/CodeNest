@@ -1,74 +1,101 @@
-import multer from "multer";
+import { Request, Response, NextFunction } from "express";
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
-import { Request, Response, NextFunction } from "express";
 import AppError from "../utils/AppError";
-const { deflate, inflate } = require("fflate");
+// import catchAsync from "../utils/catchAsync";
 const catchAsync = require("../utils/catchAsync");
-
-// Set up multer storage
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
-// Middleware to compress image
-export const compressImage = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!req.file) return next();
-
-  try {
-    const compressedBuffer = await sharp(req.file.buffer)
-      .resize({ width: 800 }) // Resize if needed
-      .jpeg({ quality: 60 }) // Adjust quality (60% for compression)
-      .toBuffer();
-
-    // Save the compressed image
-    const filePath = path.join(
-      __dirname,
-      `uploads/${Date.now()}-compressed.jpg`
-    );
-    fs.writeFileSync(filePath, compressedBuffer);
-
-    // Add filePath to request object
-    req.file.path = filePath;
-    next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-exports.compressData = catchAsync(
+// Compress image middleware
+export const compressImage = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const input = req.body.text;
-    if (!input) return next(new AppError("Text is required", 400));
+    if (!req.file) return next();
 
-    // Convert input string to Uint8Array
-    const encoded = new TextEncoder().encode(input);
+    try {
+      const compressedBuffer = await sharp(req.file.buffer)
+        .resize({ width: 800 }) // Resize if needed
+        .jpeg({ quality: 30 }) // Adjust quality (60% for compression)
+        .toBuffer();
 
-    // Compress data
-    const compressed = deflate(encoded);
-    const compressedBase64 = Buffer.from(compressed).toString("base64");
+      // Save the compressed image
+      const fileName = `${Date.now()}-image.jpg`;
+      const filePath = path.join(__dirname, "../uploads", fileName);
+      fs.writeFileSync(filePath, compressedBuffer);
 
-    res.status(200).json({ compressed: compressedBase64 });
+      // Add filePath and fileName to request object
+      req.file.path = filePath;
+      req.file.filename = fileName;
+
+      next();
+    } catch (error) {
+      next(new AppError("Failed to compress image", 500));
+    }
   }
 );
 
-exports.decompressData = catchAsync(
+// Upload image
+export const uploadImage = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const compressedBase64 = req.body.compressed;
-    if (!compressedBase64)
-      return next(new AppError("Compressed data is required", 400));
+    if (!req.file) {
+      return next(new AppError("No image file uploaded", 400));
+    }
 
-    // Convert Base64 to Uint8Array
-    const compressedBuffer = Buffer.from(compressedBase64, "base64");
+    // Return the image URL
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${
+      req.file.filename
+    }`;
+    res.status(200).json({
+      status: "success",
+      message: "Image uploaded successfully",
+      imageUrl,
+    });
+  }
+);
 
-    // Decompress data
-    const decompressed = inflate(compressedBuffer);
-    const decompressedText = new TextDecoder().decode(decompressed);
+// Delete image
+export const deleteImage = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const fileName = req.params.fileName;
 
-    res.status(200).json({ decompressed: decompressedText });
+    const filePath = path.join(__dirname, "../uploads", fileName);
+    // Check if the file exists
+    if (!fs.existsSync(filePath)) {
+      return next(new AppError("Image not found", 404));
+    }
+
+    // Delete the file
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        return next(new AppError("Failed to delete image", 500));
+      }
+      res.status(200).json({
+        status: "success",
+        message: "Image deleted successfully",
+      });
+    });
+  }
+);
+
+// Get all images
+export const getAllImages = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const uploadsDir = path.join(__dirname, "../uploads");
+
+    // Read all files in the uploads directory
+    fs.readdir(uploadsDir, (err, files) => {
+      if (err) {
+        return next(new AppError("Failed to read uploads directory", 500));
+      }
+
+      // Construct image URLs
+      const imageUrls = files.map(
+        (file) => `${req.protocol}://${req.get("host")}/uploads/${file}`
+      );
+
+      res.status(200).json({
+        status: "success",
+        results: imageUrls.length,
+        images: imageUrls,
+      });
+    });
   }
 );

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-const TagInput = () => {
-  const [tags, setTags] = useState<string[]>([]);
+const TagInput = ({ tags = [], setTags }) => {
   const maxTags = 10;
 
   const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {

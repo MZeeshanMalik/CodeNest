@@ -5,14 +5,8 @@ import { EditorProvider, useCurrentEditor } from "@tiptap/react";
 import Image from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-// import Resizable from "@tiptap/extension-resizable";
 import { ResizableImageExtension } from "@/utils/ResizableImageExtension";
 import TextAlign from "@tiptap/extension-text-align";
-
-// import { createLowlight } from "lowlight";
-// import css from "highlight.js/lib/languages/css";
-// import js from "highlight.js/lib/languages/javascript";
-// import html from "highlight.js/lib/languages/xml";
 import { createLowlight } from "lowlight";
 import css from "highlight.js/lib/languages/css";
 import js from "highlight.js/lib/languages/javascript";
@@ -158,6 +152,46 @@ import zephir from "highlight.js/lib/languages/zephir";
 // import "highlight.js/styles/github-dark.css";
 import "highlight.js/styles/github.css";
 
+const handleDeleteImage = (src: string, editor: any) => {
+  console.log(editor);
+  if (!editor) {
+    console.error("Editor not found");
+    return;
+  }
+  const filename = src.split("/").pop();
+
+  // Delete the image from the server
+  fetch(`http://127.0.0.1:3000/api/v1/images/delete-image/${filename}`, {
+    method: "DELETE",
+  })
+    .then(() => {
+      editor
+        .chain()
+        .focus()
+        .command(({ tr }: { tr: any }) => {
+          let imageNodePos = null;
+          tr.doc.descendants((node: any, pos: number) => {
+            if (node.type.name === "resizableImage" && node.attrs.src === src) {
+              imageNodePos = pos;
+              return false; // Stop the iteration
+            }
+            return true;
+          });
+
+          if (imageNodePos !== null) {
+            tr.delete(imageNodePos, imageNodePos + 1);
+          }
+          return true;
+        })
+        .run();
+      alert("Image deleted successfully");
+    })
+    .catch((error) => {
+      console.error("Error deleting image:", error);
+      alert("Failed to delete image. Please try again.");
+    });
+};
+
 import React from "react";
 import {
   FaBold,
@@ -177,6 +211,8 @@ import {
   FaAlignRight,
   FaAlignJustify,
 } from "react-icons/fa";
+import editor from "quill/core/editor";
+// import editor from "quill/core/editor";
 const lowlight = createLowlight();
 
 // Register all languages
@@ -327,47 +363,52 @@ const MenuBar = () => {
   if (!editor) {
     return null;
   }
-  // // Handle image upload
-  // const handleImageUpload = (event) => {
-  //   const file = event.target.files[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onload = (e) => {
-  //       const base64Image = e.target.result;
-  //       editor.chain().focus().setImage({ src: base64Image }).run();
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
-  // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const base64Image = e?.target?.result;
-        editor
-          .chain()
-          .focus()
-          .insertContent({
-            type: "resizableImage", // Use the custom node type
-            attrs: {
-              src: base64Image,
-              alt: "Uploaded Image",
-              width: "auto",
-              height: "auto",
-            },
-          })
-          .run();
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
-  // Handle image deletion
-  const handleDeleteImage = () => {
-    if (editor.isActive("resizableImage")) {
-      editor.chain().focus().deleteNode("resizableImage").run();
+  // Handle image upload
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files ? event.target.files[0] : null;
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      // Upload the image to the server
+      const response = await fetch(
+        "http://127.0.0.1:3000/api/v1/images/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Image upload failed");
+      }
+
+      // Get the image URL from the server response
+      const data = await response.json();
+      const imageUrl = data.imageUrl;
+
+      // Insert the image URL into the editor
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "resizableImage",
+          attrs: {
+            src: imageUrl,
+            alt: "Uploaded Image",
+            width: "auto",
+            height: "auto",
+          },
+        })
+        .run();
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
     }
   };
 
@@ -528,15 +569,6 @@ const MenuBar = () => {
             className="hidden"
           />
         </label>
-        {/* Delete Image */}
-        {editor.isActive("image") && (
-          <button
-            onClick={handleDeleteImage}
-            className="p-2 rounded hover:bg-gray-100"
-          >
-            Delete Image
-          </button>
-        )}
         {/* Text Alignment Buttons */}
         <button
           onClick={() => editor.chain().focus().setTextAlign("left").run()}
@@ -600,7 +632,7 @@ const extensions = [
     lowlight,
   }),
   Image,
-  ResizableImageExtension,
+  ResizableImageExtension.configure({ handleClick: handleDeleteImage }),
   TextAlign.configure({
     types: ["heading", "paragraph", "image"], // Add "image" to enable alignment for images
     alignments: ["left", "center", "right", "justify"], // Supported alignments
@@ -608,17 +640,18 @@ const extensions = [
   }),
 ];
 
-const content = `
-<h1>Heading 1
+interface TiptapEditorProps {
+  content: string;
+  setContent: (content: string) => void;
+}
 
-
-
-
-
-</h1>
-`;
-
-const TiptapEditor = () => {
+const TiptapEditor = ({ content, setContent }: TiptapEditorProps) => {
+  const handleUpdate = ({ editor }: { editor: any }) => {
+    // Get the updated content from the editor
+    const updatedContent = editor.getHTML();
+    // Call the setContent function to update the parent component's state
+    setContent(updatedContent);
+  };
   return (
     <>
       {/* <style>{customStyles}</style> */}
@@ -627,6 +660,7 @@ const TiptapEditor = () => {
         slotBefore={<MenuBar />}
         extensions={extensions}
         content={content}
+        onUpdate={handleUpdate}
       ></EditorProvider>
     </>
   );

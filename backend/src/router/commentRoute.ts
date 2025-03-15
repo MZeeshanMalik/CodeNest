@@ -16,4 +16,5 @@ router.put("/:postId/comments/:commentId", updateComment); // Update a comment
 router.delete("/:postId/comments/:commentId", deleteComment); // Delete a comment
 router.post("/:postId/comments/:commentId/like", toggleCommentLike); // Like/unlike a comment
 
-export default router;
+// export default router;
+module.exports = router;

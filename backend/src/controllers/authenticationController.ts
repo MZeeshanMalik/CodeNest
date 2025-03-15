@@ -34,14 +34,18 @@ const createSendToken = function (
     httpOnly: boolean;
     secure?: boolean;
     sameSite?: "none" | "lax" | "strict";
+    // sameSite?: "none";
   } = {
     expires: new Date(
       Date.now() +
         (Number(process.env.JWT_COOKIESEXPIRES) || 0) * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Secure in production
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Adjust sameSite
+    // secure: process.env.NODE_ENV === "production", // Secure in production
+    secure: true, // Secure in production
+    sameSite: process.env.NODE_ENV === "production" ? "lax" : "none", // Adjust sameSite
+    // sameSite: "none",
+    // sameSite: "none",
   };
   res.cookie("jwt", token, cookieOptions);
 
@@ -180,6 +184,8 @@ exports.isLoggedIn = async (
   // getting token and check if its there
   // let token;
   if (req.cookies.jwt) {
+    console.log(req.cookies);
+
     try {
       const decoded = await promisify(jwt.verify)(
         req.cookies.jwt,
@@ -188,7 +194,6 @@ exports.isLoggedIn = async (
 
       // checking if user still exists
       const freshUser = await User.findById(decoded.id);
-
       if (!freshUser) {
         return next();
       }

@@ -1,17 +1,29 @@
+import Image from "next/image";
 import React, { useState } from "react";
 import { useDropzone } from "react-dropzone";
 
-const ImageUploader = () => {
-  const [images, setImages] = useState<File[]>([]);
-
+const ImageUploader = ({ images, setImages, setValue }) => {
   // Handle file drop
+  // const onDrop = (acceptedFiles: File[]) => {
+  //   setImages((prevImages: []) => [...prevImages, ...acceptedFiles]);
+  //   let img = ([...prevImages, ...acceptedFiles]);
+  //   setValue("images", img);
+  // };
   const onDrop = (acceptedFiles: File[]) => {
-    setImages((prevImages) => [...prevImages, ...acceptedFiles]);
+    setImages((prevImages: File[]) => {
+      const updatedImages = [...prevImages, ...acceptedFiles]; // ✅ Array, not function
+      setValue("images", updatedImages); // ✅ Now correctly updating form value
+      return updatedImages;
+    });
   };
 
   // Remove image
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+    setValue(
+      "images",
+      images.filter((_, i) => i !== index)
+    );
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -29,6 +41,7 @@ const ImageUploader = () => {
         className="border-2 border-dashed p-8 text-center cursor-pointer bg-gray-100 rounded-lg"
       >
         <input {...getInputProps()} />
+
         <p className="text-gray-600 text-lg">
           Drag & drop images here, or click to select
         </p>
@@ -37,12 +50,14 @@ const ImageUploader = () => {
       {/* Preview Section */}
       {images.length > 0 && (
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          {images.map((file, index) => (
+          {images.map((file: File, index: number) => (
             <div key={index} className="relative">
-              <img
+              <Image
                 src={URL.createObjectURL(file)}
                 alt="Preview"
                 className="w-32 h-32 object-cover rounded-lg shadow-md"
+                height={150}
+                width={150}
               />
               {/* Remove Button */}
               <button

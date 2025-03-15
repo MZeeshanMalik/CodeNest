@@ -5,7 +5,7 @@ import TiptapEditor from "../../../../components/admin/TiptapEditor";
 const AdminPanel = () => {
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState("<h1>Write your blog here</h1>");
 
   const handleSaveDraft = () => {
     console.log("Saving draft...", { title, tags, content });
@@ -56,7 +56,7 @@ const AdminPanel = () => {
         <label htmlFor="content" className="block text-sm font-medium mb-2">
           Content
         </label>
-        <TiptapEditor />
+        <TiptapEditor content={content} setContent={setContent} />
       </div>
 
       {/* Action Buttons */}
