@@ -1,12 +1,12 @@
-const { promisify } = require("util");
+import { promisify } from "util";
 // const User = require("../Models/userModel");
 import User from "../models/userModel";
-const catchAsync = require("../utils/catchAsync");
-const jwt = require("jsonwebtoken");
+import catchAsync from "../utils/catchAsync";
+import jwt from "jsonwebtoken";
 // const AppError = require("../utils/AppError");
 import AppError from "../utils/AppError";
 // const Email = require("../utils/email");
-const bcrypt = require("bcryptjs");
+import bcrypt from "bcryptjs";
 // const crypto = require("crypto");
 import crypto from "crypto";
 import UserTypes from "../utils/types/UserTypes";
@@ -14,10 +14,22 @@ import { AppErrorTypes } from "../utils/types/AppErrorTypes";
 import { NextFunction, Response, Request } from "express";
 import passport from "passport";
 import { sendForgotPasswordEmail } from "../utils/email";
+
 export interface RequestWithUser extends Request {
   user: UserTypes;
 }
+
+console.log(process.env.SECRET_KEY);
+
+interface JwtPayload {
+  id: string;
+  iat: number;
+}
+
 export const signtok = (id: string) => {
+  if (!process.env.SECRET_KEY) {
+    throw new Error("SECRET_KEY is not defined");
+  }
   return jwt.sign({ id }, process.env.SECRET_KEY);
 };
 
@@ -136,9 +148,10 @@ exports.logout = (req: Request, res: Response) => {
   });
 };
 
-exports.protect = catchAsync(
-  async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    // getting token and check if its there
+// Protect middleware
+export const protect = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // 1) Getting token and check if it's there
     let token;
     if (
       req.headers.authorization &&
@@ -148,62 +161,77 @@ exports.protect = catchAsync(
     } else if (req.cookies.jwt) {
       token = req.cookies.jwt;
     }
+
     if (!token) {
       return next(
-        new AppError("you are not logged in please login to get access", 401)
+        new AppError("You are not logged in! Please log in to get access.", 401)
       );
     }
 
-    //verification token
-    const decoded = await promisify(jwt.verify)(token, process.env.SECRET_KEY);
-    // checking if user still exists
-    const freshUser = await User.findById(decoded.id);
-    if (!freshUser) {
+    if (!process.env.SECRET_KEY) {
+      return next(new AppError("Server configuration error", 500));
+    }
+
+    // 2) Verification token
+    const decoded = jwt.verify(token, process.env.SECRET_KEY) as JwtPayload;
+
+    // 3) Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
       return next(
-        new AppError("the user belonging to this token does not exists", 401)
+        new AppError(
+          "The user belonging to this token does no longer exist.",
+          401
+        )
       );
     }
 
-    // check if user change password after token was issued
-    if (freshUser.passwordChangedAfter(decoded.iat)) {
-      return next(new AppError("user recently changed password", 401));
+    // 4) Check if user changed password after the token was issued
+    if (currentUser.passwordChangedAfter(decoded.iat)) {
+      return next(
+        new AppError(
+          "User recently changed password! Please log in again.",
+          401
+        )
+      );
     }
 
-    req.user = freshUser;
+    // GRANT ACCESS TO PROTECTED ROUTE
+    (req as RequestWithUser).user = currentUser;
     next();
   }
 );
 
 // only for checking if user is loggged in
 
-exports.isLoggedIn = async (
+export const isLoggedIn = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  // getting token and check if its there
-  // let token;
   if (req.cookies.jwt) {
-    console.log(req.cookies);
-
     try {
-      const decoded = await promisify(jwt.verify)(
+      if (!process.env.SECRET_KEY) {
+        return next();
+      }
+
+      const decoded = jwt.verify(
         req.cookies.jwt,
         process.env.SECRET_KEY
-      );
+      ) as JwtPayload;
 
-      // checking if user still exists
+      // Check if user still exists
       const freshUser = await User.findById(decoded.id);
       if (!freshUser) {
         return next();
       }
 
-      // check if user change password after token was issued
+      // Check if user changed password after token was issued
       if (freshUser.passwordChangedAfter(decoded.iat)) {
         return next();
       }
 
-      // there is a loggedin user
+      // There is a logged in user
       res.locals.user = freshUser;
       return next();
     } catch (err) {
@@ -296,25 +324,50 @@ exports.resetPassword = catchAsync(
   }
 );
 
-exports.updatePassword = catchAsync(
-  async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    //  1 get user from collection
-
-    const user = await User.findById(req.user._id).select("+password");
-    //check if posted current password is correct
-    if (!(await user.correctPssword(req.body.password, user.password))) {
-      return next(new AppError("You entered wrong password", 401));
-    }
-    //checking confirm password == password
-    if (!(req.body.updatePassword === req.body.confirmUpdatePassword)) {
+// Update password
+export const updatePassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const requestWithUser = req as RequestWithUser;
+    if (!requestWithUser.user) {
       return next(
-        new AppError("password and confirm password not matched ", 400)
+        new AppError("You must be logged in to update password", 401)
       );
     }
-    //if so update password
-    user.password = req.body.updatePassword;
-    user.confirmPassword = req.body.confirmUpdatePassword;
+
+    // 1) Get user from collection
+    const user = await User.findById(requestWithUser.user._id).select(
+      "+password"
+    );
+    if (!user) {
+      return next(new AppError("User not found", 404));
+    }
+
+    // 2) Check if posted current password is correct
+    if (
+      !(await user.correctPassword(
+        requestWithUser.body.password,
+        user.password
+      ))
+    ) {
+      return next(new AppError("You entered wrong password", 401));
+    }
+
+    // 3) Check if new password matches confirm password
+    if (
+      requestWithUser.body.updatePassword !==
+      requestWithUser.body.confirmUpdatePassword
+    ) {
+      return next(
+        new AppError("Password and confirm password do not match", 400)
+      );
+    }
+
+    // 4) Update password
+    user.password = requestWithUser.body.updatePassword;
+    user.confirmPassword = requestWithUser.body.confirmUpdatePassword;
     await user.save();
+
+    // 5) Log user in, send JWT
     createSendToken(user, 200, res);
   }
 );

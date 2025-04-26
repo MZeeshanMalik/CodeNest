@@ -20,36 +20,19 @@ import { SyncLoader } from "react-spinners";
 
 const Page = () => {
   const [content, setContent] = useState<string>("");
-  // const [title, setTitle] = useState<string>("");
-  // const [code, setCode] = useState<string>("// Paste your code sample here...");
-  // const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
 
   const questionMutation = usePostQuestion();
-
-  // const {
-  //   register,
-  //   handleSubmit,
-  //   formState: { errors },
-  // } = useForm<QuestionFormValues>({
-  //   resolver: zodResolver(QuestionFormValuesSchema),
-  // });
   const {
     register,
     handleSubmit,
     setValue,
-    watch, // ✅ Use watch instead of state
+    watch,
     formState: { errors },
   } = useForm<QuestionFormValues>({
     resolver: zodResolver(QuestionFormValuesSchema),
     mode: "onChange",
-    // defaultValues: {
-    //   title,
-    //   content,
-    //   code,
-    //   tags,
-    // },
   });
   const onSubmit = (data: QuestionFormValues) => {
     setLoading(true);
@@ -78,25 +61,10 @@ const Page = () => {
     }, 2000);
   };
 
-  // ✅ Directly watch form values instead of using state
-  // const title = watch("title");
-  // const contents = watch("content");
-  // const code = watch("code");
-
-  const handleEditorChange = (data: {
-    text: string;
-    contents: any;
-    html: string;
-    editor: any;
-    textLength: number;
-  }) => {
-    // setContent(data.html); // Store as HTML
-    setValue("content", data.html, { shouldValidate: true });
-    console.log("Received HTML from Editor:", data.html);
+  const handleEditorChange = (content: string) => {
+    setValue("content", content, { shouldValidate: true });
+    console.log("Received HTML from Editor:", content);
   };
-  // const handleTitleChange = (e: any) => {
-  //   setTitle(e.target.value);
-  // };
 
   return (
     <div className="mt-4">
@@ -112,7 +80,6 @@ const Page = () => {
               Write a compelling title that sparks curiosity and discussion!
             </p>
             <Input
-              // onChange={(e) => handleTitleChange(e)}
               {...register("title")}
               placeholder="e.g. Why is my Node.js server crashing"
             />
@@ -131,7 +98,6 @@ const Page = () => {
             </p>
             <QuillEditor
               value={content}
-              // onChange={handleEditorChange}
               onChange={handleEditorChange}
               placeholder="e.g. I'm trying to fetch data using Axios in Next.js, but I keep getting a CORS error. How can I fix it?"
             />
@@ -140,10 +106,6 @@ const Page = () => {
                 {errors.content.message}
               </p>
             )}
-
-            {/* <pre className="mt-2 p-2 bg-gray-200 text-sm rounded">
-            {JSON.stringify(content, null, 2)}
-          </pre> */}
 
             <div className="mt-6 p-4 border rounded bg-gray-100">
               <h2 className="text-xl font-semibold">
@@ -161,12 +123,14 @@ const Page = () => {
             </p>
             <CodeEditor
               setCode={(val: string) =>
-                setValue("code", val, { shouldValidate: true })
+                setValue("codeBlocks", val, { shouldValidate: true })
               }
-              code={watch("code")}
+              code={watch("codeBlocks")}
             />
-            {errors.code && (
-              <p className="text-red-500 text-sm mt-1">{errors.code.message}</p>
+            {errors.codeBlocks && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.codeBlocks.message}
+              </p>
             )}
           </div>
           <div className="w-full max-w-4xl mx-auto p-4">
@@ -186,11 +150,11 @@ const Page = () => {
               </p>
             )}
           </div>
-          <div className="w-full max-w-4xl mx-auto p-4">
+          <div className="w-full max-w-4xl mx-auto p-4 ">
             <TagInput
               tags={watch("tags")}
-              setTags={(val: []) =>
-                setValue("tags", val, { shouldValidate: true })
+              setTags={(tags: string[]) =>
+                setValue("tags", tags, { shouldValidate: true })
               }
             />
             {errors.tags && (

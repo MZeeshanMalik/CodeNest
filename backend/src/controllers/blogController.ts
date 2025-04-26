@@ -1,6 +1,7 @@
 import { Response, NextFunction } from "express";
 // import Post from '../models/postModel';
-const catchAsync = require("../utils/catchAsync");
+// const catchAsync = require("../utils/catchAsync");
+import catchAsync from "../utils/catchAsync";
 
 import { Post } from "../models/blogModel";
 import { RequestWithUser } from "./authenticationController";

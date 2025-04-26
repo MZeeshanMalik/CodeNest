@@ -4,7 +4,8 @@ import fs from "fs";
 import path from "path";
 import AppError from "../utils/AppError";
 // import catchAsync from "../utils/catchAsync";
-const catchAsync = require("../utils/catchAsync");
+// const catchAsync = require("../utils/catchAsync");
+import catchAsync from "../utils/catchAsync";
 // Compress image middleware
 export const compressImage = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

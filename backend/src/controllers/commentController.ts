@@ -3,7 +3,8 @@ import { Post } from "../models/blogModel";
 import { RequestWithUser } from "./authenticationController";
 // import Post from "../models/postModel";
 // import catchAsync from '../utils/catchAsync';
-const catchAsync = require("../utils/catchAsync");
+// const catchAsync = require("../utils/catchAsync");
+import catchAsync from "../utils/catchAsync";
 
 // Add Comment
 export const addComment = catchAsync(

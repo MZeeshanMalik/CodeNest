@@ -3,18 +3,20 @@ const app = express();
 // import {globalErrorHandler} from "./middlewares/errorHandler";
 import cookieParser from "cookie-parser";
 import path from "path";
-const cors = require("cors");
+import cors from "cors";
 const globalErrorHandler = require("./middlewares/errorHandler");
 // import userRouter from "./router/userRoutes";
-const userRouter = require("./router/userRoutes.ts");
+const userRouter = require("./router/userRoutes");
 const contactRouter = require("./router/contactRoutes");
 const blogRouter = require("./router/blogRoute");
 const commentRouter = require("./router/commentRoute");
 const questionRouter = require("./router/questionRoute");
+const voteRouter = require("./router/voteRoute");
 // import imageRoutes from "./routes/imageRoutes";
 const imageRoutes = require("./router/imageRoutes");
 // import { isLoggedIn } from "./controllers/authenticationController";
 const authController = require("./controllers/authenticationController");
+const answerRouter = require("./router/answerRoute");
 
 // app.use(cors());
 app.use(
@@ -36,6 +38,9 @@ app.use("/api/v1/blog", blogRouter);
 app.use("/api/v1/comment", commentRouter);
 app.use("/api/v1/images", imageRoutes);
 app.use("/api/v1/question", questionRouter);
+console.log("answerRouter");
+app.use("/api/v1/answer", answerRouter);
+app.use("/api/v1/vote", voteRouter);
 
 app.use(express.json());
 

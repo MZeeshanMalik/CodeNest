@@ -99,9 +99,61 @@ export const postQuestion = async (data: QuestionFormValues) => {
 
 //   return response.data;
 // };
-export const getQuestions = async () => {
-  const response = await axios.get(`${API_URL}/api/v1/questions`, {
+// query question by id or slug
+export const getQuestions = async (query: string, page = 1, limit = 10) => {
+  console.log(`${API_URL}/api/question/${query}`);
+  const { data } = await axios.get(`${API_URL}/api/v1/question/${query}`, {
+    params: { page, limit },
+  });
+  return data;
+};
+
+export const searchQuestions = async (query: string, page = 1, limit = 10) => {
+  console.log("Searching for:", query); // Debug log
+  const response = await axios.get(`${API_URL}/api/v1/question/search`, {
+    params: { query, page, limit },
     withCredentials: true,
   });
-  return response.data;
+  console.log("Search response:", response.data); // Debug log
+  return response.data.data; // Return the nested data structure
+};
+
+export const getRelatedQuestions = async (
+  tags: string[],
+  excludeId: string
+) => {
+  try {
+    const response = await axios.get(`${API_URL}/api/v1/question/related`, {
+      params: {
+        tags: tags.join(","),
+        excludeId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching related questions:", error);
+    throw error;
+  }
+};
+
+export const getTopVotedQuestions = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/v1/question/top-voted`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching top voted questions:", error);
+    throw error;
+  }
+};
+
+export const getRandomQuestions = async (limit: number = 5) => {
+  try {
+    const response = await axios.get(`${API_URL}/api/v1/question/random`, {
+      params: { limit },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching random questions:", error);
+    throw error;
+  }
 };

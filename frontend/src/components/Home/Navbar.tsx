@@ -4,14 +4,66 @@ import { useAuthLogout } from "@/hooks/useAuth";
 import { logout } from "@/lib/auth";
 import { useAuth } from "@/services/AuthProvider";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+// import { useQuery } from "react-query";
+// import { getQuestions } from "@/lib/api"; // Adjust the import based on your project structure
+import { debounce, isError } from "lodash";
+import { useGetQuestions, useSearchQuestions } from "@/hooks/useQuestion";
+// import { Question } from "@/types"; // Adjust the import path based on your project structure
+
+interface User {
+  name: string;
+  // Add other properties of the user object if needed
+}
+
+interface Question {
+  _id: string;
+  title: string;
+  user: {
+    name: string;
+  };
+  slug: string;
+}
 
 const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const { user } = useAuth() as { user: User | null };
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  // / Add this ref declaration
+  const searchResultsRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Add this useEffect for click outside detection
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchResultsRef.current &&
+        !searchResultsRef.current.contains(event.target as Node)
+      ) {
+        setIsInputFocused(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const logoutMutation = useAuthLogout();
   const { toast } = useToast();
+
+  // Debounced search query
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      setSearchQuery(query);
+    }, 300),
+    []
+  );
+
+  // Fetch questions based on the search query
+  const { data: questions, isLoading } = useSearchQuestions(searchQuery, 1, 5);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -30,6 +82,13 @@ const Navbar: React.FC = () => {
       variant: "success",
     });
   };
+
+  // Clear search results when the search input is empty
+  useEffect(() => {
+    if (!searchQuery) {
+      setSearchQuery("");
+    }
+  }, [searchQuery]);
 
   return (
     <nav className="bg-bgPrimary shadow-md">
@@ -61,16 +120,44 @@ const Navbar: React.FC = () => {
 
           {/* Search Bar (Desktop) */}
           <div className="hidden md:flex flex-1 items-center justify-center px-2 lg:ml-6 lg:justify-end">
-            <div className="max-w-lg w-full lg:max-w-xs">
+            <div className="max-w-lg w-full lg:max-w-xs relative">
               <label htmlFor="search" className="sr-only">
                 Search
               </label>
               <div className="relative">
-                <input
+                {/* <input
                   type="text"
                   id="search"
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-ringCol focus:border-ringBorderCol sm:text-sm"
                   placeholder="Search..."
+                  onChange={(e) => debouncedSearch(e.target.value)}
+                  // onFocus={() => setIsInputFocused(true)} // Set focus state to true
+                  onFocus={() => {
+                    setIsInputFocused(true);
+                    if (searchQuery) {
+                      debouncedSearch(searchQuery);
+                    }
+                  }}
+                  onBlur={() => setIsInputFocused(false)} // Set focus state to false
+                  autoComplete="off"
+                /> */}
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-ringCol focus:border-ringBorderCol sm:text-sm"
+                  placeholder="Search questions, tags, or users..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    debouncedSearch(e.target.value);
+                  }}
+                  onFocus={() => {
+                    setIsInputFocused(true);
+                    if (searchQuery) {
+                      debouncedSearch(searchQuery);
+                    }
+                  }}
+                  autoComplete="off"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -86,20 +173,56 @@ const Navbar: React.FC = () => {
                   </svg>
                 </div>
               </div>
+
+              {/* Search Results Dropdown */}
+              {isInputFocused && searchQuery && (
+                <div
+                  ref={searchResultsRef}
+                  className="absolute z-10 mt-2 w-full bg-white shadow-lg rounded-md max-h-60 overflow-y-auto"
+                >
+                  {isLoading ? (
+                    <div className="px-4 py-2 text-gray-500">Loading...</div>
+                  ) : questions?.questions?.length ? (
+                    questions.questions.map((question: any) => (
+                      <Link
+                        key={question._id}
+                        href={`/questions/${question._id}`}
+                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsInputFocused(false);
+                          setSearchQuery("");
+                          window.location.href = `/questions/${question._id}`;
+                        }}
+                      >
+                        <h4 className="font-medium text-gray-900">
+                          {question.title}
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          by {question.user?.name}
+                        </p>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-4 py-2 text-gray-500">
+                      No results found
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* {if there is already logged in user} */}
+          {/* Conditional Rendering for User State */}
           {user ? (
             <div className="hidden md:flex items-center space-x-4">
               <Link
                 href="/"
                 className="text-stone-800 px-4 py-2 hover:text-gray-100 rounded-md hover:bg-btnColor "
               >
-                {user.name}
+                {user?.name}
               </Link>
               <span
-                // href="/signup"
                 onClick={handleLogout}
                 className="bg-btnColor text-white px-4 py-2 rounded-md hover:bg-btnHoverCol cursor-pointer"
               >
@@ -122,21 +245,6 @@ const Navbar: React.FC = () => {
               </a>
             </div>
           )}
-          {/* User Actions (Desktop) */}
-          {/* <div className="hidden md:flex items-center space-x-4">
-            <a
-              href="/login"
-              className="text-stone-800 px-4 py-2 hover:text-gray-100 rounded-md hover:bg-btnColor "
-            >
-              Log in
-            </a>
-            <a
-              href="/signup"
-              className="bg-btnColor text-white px-4 py-2 rounded-md hover:bg-btnHoverCol"
-            >
-              Sign up
-            </a>
-          </div> */}
 
           {/* Mobile Menu Button and Search Button */}
           <div className="flex items-center md:hidden space-x-4">
@@ -191,6 +299,13 @@ const Navbar: React.FC = () => {
               type="text"
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
               placeholder="Search..."
+              onChange={(e) => debouncedSearch(e.target.value)}
+              onFocus={() => {
+                setIsInputFocused(true);
+                if (searchQuery) {
+                  debouncedSearch(searchQuery);
+                }
+              }}
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
@@ -206,6 +321,70 @@ const Navbar: React.FC = () => {
               </svg>
             </div>
           </div>
+
+          {/* Mobile Search Results Dropdown */}
+          {isInputFocused && searchQuery && (
+            <div
+              ref={searchResultsRef}
+              className="mt-1 bg-white shadow-lg rounded-md max-h-80 overflow-y-auto border border-gray-200 divide-y divide-gray-100"
+            >
+              {isLoading ? (
+                <div className="px-4 py-3 text-gray-500 flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Searching...
+                </div>
+              ) : questions?.questions?.length ? (
+                questions.questions.map((question: any) => (
+                  <Link
+                    key={question._id}
+                    href={`/questions/${question._id}`}
+                    className="block px-4 py-3 hover:bg-gray-50 transition-colors duration-150"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsInputFocused(false);
+                      setIsSearchOpen(false);
+                      setSearchQuery("");
+                      setTimeout(() => {
+                        window.location.href = `/questions/${question._id}`;
+                      }, 0);
+                    }}
+                  >
+                    <h4 className="font-medium text-gray-900">
+                      {question.title}
+                    </h4>
+                    <p className="text-sm text-gray-500 mt-1">
+                      by {question.user?.name}
+                    </p>
+                  </Link>
+                ))
+              ) : (
+                <div className="px-4 py-3 text-gray-500">
+                  {isError(questions?.error)
+                    ? "Error searching. Please try again."
+                    : "No results found. Try different keywords."}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -235,51 +414,7 @@ const Navbar: React.FC = () => {
             </svg>
           </button>
         </div>
-        {/* <div className="px-2 pt-2 pb-3 space-y-1">
-          <a
-            href="/questions"
-            className="block text-gray-500 hover:text-gray-700"
-          >
-            Questions
-          </a>
-          <a href="/tags" className="block text-gray-500 hover:text-gray-700">
-            Tags
-          </a>
-          <a href="/users" className="block text-gray-500 hover:text-gray-700">
-            Users
-          </a>
-          {user ? (
-            <>
-              <a
-                href="/login"
-                className="block text-gray-500 hover:text-gray-700"
-              >
-                {user.name}
-              </a>
-              <span
-                onClick={handleLogout}
-                className="block text-blue-500 hover:text-blue-700"
-              >
-                Logout
-              </span>
-            </>
-          ) : (
-            <>
-              <a
-                href="/login"
-                className="block text-gray-500 hover:text-gray-700"
-              >
-                Log in
-              </a>
-              <a
-                href="/signup"
-                className="block text-blue-500 hover:text-blue-700"
-              >
-                Sign up
-              </a>
-            </>
-          )}
-        </div> */}
+
         <div className="px-4 pt-4 pb-6 space-y-2 bg-white shadow-lg rounded-lg">
           {/* Navigation Links */}
           <a
@@ -309,7 +444,7 @@ const Navbar: React.FC = () => {
                 href="/profile"
                 className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
               >
-                {user.name}
+                {user?.name}
               </a>
               {/* Logout Button */}
               <button

@@ -3,7 +3,7 @@ import { unknown, z } from "zod";
 export const QuestionFormValuesSchema = z.object({
   title: z.string().min(10, "Title must be at least 10 characters"),
   content: z.string().min(10, "Description must be at least 10 characters"),
-  code: z.string().optional().optional(),
+  codeBlocks: z.string().optional(),
   tags: z.array(z.string()).min(1, "Please add at least one tag").default([]),
   // images: z.instanceof(File).optional(),
   images: z

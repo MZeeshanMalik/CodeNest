@@ -7,16 +7,23 @@ import {
 } from "react";
 import { LoginFormValues } from "@/types/loginTypes";
 
+interface User {
+  _id: string;
+  name: string;
+  email?: string;
+  role?: string;
+}
+
 // Define the shape of the context value
 type AuthContextType = {
-  user: object; // Replace `object` with a more specific type if needed
-  login: (userData: LoginFormValues) => void;
+  user: User | null;
+  login: (userData: User | LoginFormValues) => void;
   logout: () => void;
 };
 
 // Create the context with an initial value that matches the type
 const AuthContext = createContext<AuthContextType>({
-  user: {},
+  user: null,
   login: () => {},
   logout: () => {},
 });
@@ -26,40 +33,32 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<object | "">("");
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check if there's a token in the URL (for redirect)
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    const userObj = urlParams.get("user");
-
-    if (token) {
-      document.cookie = `jwt=${token}; path=/; max-age=86400; Secure; SameSite=Lax`;
-      const userData = JSON.parse(decodeURIComponent(userObj));
-      // const userData = { userObj }; // Store name as well
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-      window.location.replace("/"); // Redirect to the home page or dashboard after login
-    } else {
-      // Check if user data exists in localStorage
-      const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-      if (storedUser) {
-        setUser(storedUser);
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser) as User;
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Error parsing stored user:", error);
+        localStorage.removeItem("user");
       }
     }
   }, []);
 
-  const login = (userData: LoginFormValues) => {
-    setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+  const login = (userData: User | LoginFormValues) => {
+    if ("_id" in userData) {
+      setUser(userData as User);
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
   };
 
   const logout = () => {
-    setUser("");
+    setUser(null);
     localStorage.removeItem("user");
-    localStorage.removeItem("jwt"); // Remove JWT token from localStorage
-    // Optionally, make a request to backend to invalidate JWT
+    localStorage.removeItem("jwt");
   };
 
   return (

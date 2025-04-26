@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 
-const TagInput = ({ tags = [], setTags }) => {
+const TagInput = ({
+  tags = [] as string[],
+  setTags,
+}: {
+  tags: string[];
+  setTags: React.Dispatch<React.SetStateAction<string[]>>;
+}) => {
   const maxTags = 10;
 
   const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -22,7 +28,7 @@ const TagInput = ({ tags = [], setTags }) => {
   };
 
   return (
-    <div className="p-5 max-w-md md:min-w-4xl mx-auto bg-white rounded-lg shadow-lg border border-gray-200">
+    <div className="p-5  md:min-w-4xl  bg-white rounded-lg shadow-lg border border-gray-200 w-full min-w-0 sm:min-w-[320px] md:min-w-[480px] lg:min-w-[640px] xl:min-w-[800px] max-w-full mx-auto">
       <h2 className="text-lg font-medium text-gray-800 mb-3">Add Tags</h2>
 
       {/* Tag Input Field */}

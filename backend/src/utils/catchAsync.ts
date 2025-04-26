@@ -1,16 +1,19 @@
 // type catchAsync = (fn: Function) => Function;
 
-import { NextFunction } from "express";
+import { NextFunction, Response, Request } from "express";
+import { RequestWithUser } from "../controllers/authenticationController";
+import { AuthenticatedRequest } from "../utils/types";
 
-interface AsyncFunction {
-  (req: Request, res: Response, next: NextFunction): Promise<any>;
+interface AsyncFunction<T extends Request = Request> {
+  (req: T, res: Response, next: NextFunction): Promise<any>;
 }
 
-const catchAsync = (
-  fn: AsyncFunction
+const catchAsync = <T extends Request>(
+  fn: AsyncFunction<T>
 ): ((req: Request, res: Response, next: NextFunction) => void) => {
   return (req, res, next) => {
-    fn(req, res, next).catch(next);
+    fn(req as T, res, next).catch(next);
   };
 };
-module.exports = catchAsync;
+
+export default catchAsync;

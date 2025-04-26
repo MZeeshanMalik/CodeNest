@@ -1,5 +1,7 @@
-const express = require("express");
-export const router = express.Router();
+// const express = require("express");
+// const router = express.Router();
+import express from "express";
+const router = express.Router();
 
 const blogController = require("../controllers/blogController");
 router.get("/", blogController.getAllPosts);

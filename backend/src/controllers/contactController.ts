@@ -3,7 +3,8 @@ import Contact from "../models/contactModel";
 import { stat } from "fs";
 
 // import catchAsync from '../utils/catchAsync'
-const catchAsync = require("../utils/catchAsync");
+// const catchAsync = require("../utils/catchAsync");
+import catchAsync from "../utils/catchAsync";
 
 export const postContact = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {

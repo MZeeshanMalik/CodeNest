@@ -29,9 +29,9 @@ const SocialLoginButton: React.FC<SocialLoginButtonProps> = ({
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={`flex items-center justify-center w-full px-6 py-3 space-x-2 font-semibold text-black bg-${
-        provider === "google" ? "geen-700" : "gray-200"
+        provider === "google" ? "green-700" : "gray-200"
       } rounded-lg shadow-md hover:bg-${
-        provider === "google" ? "blue-700" : "gray-900"
+        provider === "google" ? "green-700" : "gray-900"
       } transition-colors duration-200`}
     >
       {icon}
