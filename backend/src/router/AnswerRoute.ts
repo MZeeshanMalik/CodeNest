@@ -11,8 +11,11 @@ import { protect } from "../controllers/authenticationController";
 
 const router = express.Router({ mergeParams: true });
 
-// Protected routes (require authentication)
 router.use(protect);
+router.patch("/updateAnswer/:answerId", updateAnswer);
+
+// Protected routes (require authentication)
+console.log("this is update answer route");
 
 // Get answers by question ID
 router.get("/question/:questionId", getQuestionAnswers);
@@ -24,10 +27,9 @@ router.get("/:id", getAnswers);
 router.post("/", createAnswer);
 
 // Update an answer (only the author can update)
-router.patch("/:id", updateAnswer);
 
 // Delete an answer (only the author or admin can delete)
-router.delete("/:id", deleteAnswer);
+router.delete("/:answerId", deleteAnswer);
 
 // Report an answer
 router.post("/:id/report", reportAnswer);

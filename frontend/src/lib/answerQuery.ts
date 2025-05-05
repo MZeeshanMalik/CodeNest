@@ -1,3 +1,4 @@
+import { API_URL } from "@/utils/apiRoutes";
 import axiosInstance from "./axios";
 
 export const postAnswer = async (
@@ -20,11 +21,20 @@ export const getAnswers = async (questionId: string) => {
   return response.data;
 };
 
-export const updateAnswer = async (answerId: string, content: string) => {
+export const updateAnswer = async (
+  answerId: string,
+  editedContent: { content: string; codeBlocks?: string }
+) => {
   try {
-    const response = await axiosInstance.put(`/api/v1/answer/${answerId}`, {
-      content,
-    });
+    console.log("This is answer api");
+    const response = await axiosInstance.patch(
+      `${API_URL}/api/v1/answer/updateAnswer/${answerId}`,
+      {
+        content: editedContent.content,
+        codeBlocks: editedContent.codeBlocks,
+      }
+    );
+    console.log("response is", response);
     return response.data;
   } catch (error) {
     console.error("Update answer error:", error);

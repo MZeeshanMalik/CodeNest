@@ -38,19 +38,29 @@ export const usePostAnswer = () => {
     },
   });
 };
-
+type EditedAnswer = {
+  content: string;
+  codeBlocks?: string;
+};
+type UpdateAnswerInput = {
+  answerId: string;
+  editedContent: EditedAnswer;
+};
 export const useUpdateAnswer = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({
-      answerId,
-      content,
-    }: {
-      answerId: string;
-      content: string;
-    }) => updateAnswer(answerId, content),
+    // mutationFn: ({
+    //   answerId,
+    //   editedContent,
+    // }: {
+    //   answerId: string;
+    //   content: string;
+    //   codeBlocks?: string;
+    // }) => updateAnswer(answerId, editedContent),
+    mutationFn: ({ answerId, editedContent }: UpdateAnswerInput) =>
+      updateAnswer(answerId, editedContent),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["question"] });
       toast({

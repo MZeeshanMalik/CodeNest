@@ -73,7 +73,6 @@ const QuestionPage = () => {
 
   const loadMoreAnswers = useCallback(async () => {
     if (!hasMore || !question) return;
-
     try {
       const { data } = await axios.get(
         `http://127.0.0.1:3000/api/v1/question/${QuestionPage}`,

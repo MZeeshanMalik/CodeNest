@@ -12,7 +12,6 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log("server has started....", port);
 });
-console.log("After app listen");
 // handle unhandled promise rejection
 process.on("unhandledRejection", (err: AppErrorTypes) => {
   console.error(`🚨 Unhandled Rejection: ${err.message}`);

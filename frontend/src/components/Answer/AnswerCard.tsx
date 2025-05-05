@@ -43,7 +43,10 @@ const AnswerCard = ({ answer, onUpdate, onDelete }: AnswerCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(answer.content);
+  const [editedContent, setEditedContent] = useState({
+    content: answer.content,
+    codeBlocks: answer.codeBlocks,
+  });
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const updateAnswerMutation = useUpdateAnswer();
@@ -52,7 +55,7 @@ const AnswerCard = ({ answer, onUpdate, onDelete }: AnswerCardProps) => {
   const isAuthor = user?._id === answer.user._id;
 
   const handleUpdate = async () => {
-    if (!editedContent.trim()) {
+    if (!editedContent.content.trim()) {
       toast({
         title: "Error",
         description: "Answer content cannot be empty",
@@ -64,7 +67,7 @@ const AnswerCard = ({ answer, onUpdate, onDelete }: AnswerCardProps) => {
     try {
       await updateAnswerMutation.mutateAsync({
         answerId: answer._id,
-        content: editedContent,
+        editedContent,
       });
       console.log("Answer updated successfully");
       setIsEditing(false);
@@ -141,10 +144,35 @@ const AnswerCard = ({ answer, onUpdate, onDelete }: AnswerCardProps) => {
           {isEditing ? (
             <div className="space-y-4">
               <Editor
-                value={editedContent}
-                onChange={setEditedContent}
+                value={editedContent.content}
+                onChange={(value: string) =>
+                  setEditedContent({ ...editedContent, content: value })
+                }
+                // onChange={setEditedContent}
                 onSubmit={handleUpdate}
               />
+              {answer.codeBlocks && (
+                <>
+                  <div className="mt-4 bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+                    <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-white">
+                      Code Example
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <CodeEditor
+                      code={answer.codeBlocks}
+                      setCode={(newcode: string) => {
+                        setEditedContent({
+                          ...editedContent,
+                          codeBlocks: newcode,
+                        });
+                      }}
+                      editable={true}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsEditing(false)}>
                   Cancel

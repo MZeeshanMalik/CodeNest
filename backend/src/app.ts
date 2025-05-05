@@ -16,7 +16,7 @@ const voteRouter = require("./router/voteRoute");
 const imageRoutes = require("./router/imageRoutes");
 // import { isLoggedIn } from "./controllers/authenticationController";
 const authController = require("./controllers/authenticationController");
-const answerRouter = require("./router/answerRoute");
+const answerRouter = require("./router/AnswerRoute");
 
 // app.use(cors());
 app.use(
@@ -31,7 +31,7 @@ app.use(cookieParser());
 app.use(authController.isLoggedIn);
 // Serve static files from the "uploads" directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
+console.log("this is app.ts");
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/contact", contactRouter);
 app.use("/api/v1/blog", blogRouter);

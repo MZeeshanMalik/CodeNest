@@ -81,6 +81,9 @@ const Navbar: React.FC = () => {
       description: "✅ Logout successful!",
       variant: "success",
     });
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   // Clear search results when the search input is empty
@@ -104,15 +107,18 @@ const Navbar: React.FC = () => {
 
           {/* Navigation Links (Desktop) */}
           <div className="hidden md:flex space-x-8 items-center">
-            <a href="/questions" className="text-gray-500 hover:text-gray-700">
+            <Link
+              href="//questions/ask"
+              className="text-gray-500 hover:text-gray-700"
+            >
               Questions
-            </a>
-            <a href="/tags" className="text-gray-500 hover:text-gray-700">
+            </Link>
+            <Link href="/tags" className="text-gray-500 hover:text-gray-700">
               Tags
-            </a>
-            <a href="/users" className="text-gray-500 hover:text-gray-700">
+            </Link>
+            <Link href="/users" className="text-gray-500 hover:text-gray-700">
               Users
-            </a>
+            </Link>
             <Link href="/contact" className="text-gray-500 hover:text-gray-700">
               contact us
             </Link>
@@ -125,22 +131,6 @@ const Navbar: React.FC = () => {
                 Search
               </label>
               <div className="relative">
-                {/* <input
-                  type="text"
-                  id="search"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-ringCol focus:border-ringBorderCol sm:text-sm"
-                  placeholder="Search..."
-                  onChange={(e) => debouncedSearch(e.target.value)}
-                  // onFocus={() => setIsInputFocused(true)} // Set focus state to true
-                  onFocus={() => {
-                    setIsInputFocused(true);
-                    if (searchQuery) {
-                      debouncedSearch(searchQuery);
-                    }
-                  }}
-                  onBlur={() => setIsInputFocused(false)} // Set focus state to false
-                  autoComplete="off"
-                /> */}
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -390,7 +380,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu (Hidden by default) */}
       <div
-        className={`md:hidden fixed inset-y-0 right-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed inset-y-0 right-0 w-64 bg-white  transform transition-transform duration-300 ease-in-out ${
           isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -415,23 +405,23 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
-        <div className="px-4 pt-4 pb-6 space-y-2 bg-white shadow-lg rounded-lg">
+        <div className="px-4 pt-4 pb-6 space-y-2   rounded-lg">
           {/* Navigation Links */}
-          <a
-            href="/questions"
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+          <Link
+            href="/questions/ask"
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-300 rounded-lg transition-all duration-200 ease-in-out bg-gray-200"
           >
-            Questions
-          </a>
+            Ask Question
+          </Link>
           <a
             href="/tags"
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+            className="block px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200 ease-in-out"
           >
             Tags
           </a>
           <a
             href="/users"
-            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+            className="block px-4 py-2 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-lg transition-all duration-200 ease-in-out"
           >
             Users
           </a>
@@ -442,14 +432,14 @@ const Navbar: React.FC = () => {
               {/* User Profile Link */}
               <a
                 href="/profile"
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+                className="block px-4 py-2 text-gray-700 hover:bg-gray-300 rounded-lg transition-all duration-200 ease-in-out bg-gray-200"
               >
                 {user?.name}
               </a>
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out"
+                className="block w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 ease-in-out bg-gray-200"
               >
                 Logout
               </button>
@@ -459,14 +449,14 @@ const Navbar: React.FC = () => {
               {/* Login Link */}
               <a
                 href="/login"
-                className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200 ease-in-out"
+                className="block px-4 py-2 text-gray-100 bg-btnColor hover:to-btnHoverCol rounded-lg transition-all duration-200 ease-in-out"
               >
                 Log in
               </a>
               {/* Signup Link */}
               <a
                 href="/signup"
-                className="block px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 ease-in-out"
+                className="block px-4 py-2 text-gray-100 bg-btnColor hover:to-btnHoverCol rounded-lg transition-all duration-200 ease-in-out"
               >
                 Sign up
               </a>

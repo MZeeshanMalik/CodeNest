@@ -4,7 +4,7 @@
   "description": "This is for codenest website which is a question answer platform.",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon server.js",
+    "test": "nodemon --legacy-watch server.js",
     "dev": "nodemon src/server.ts",
     "start": "npx ts-node-dev --respawn --transpile-only src/server.ts"
   },

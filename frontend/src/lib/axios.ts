@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_URL } from "@/utils/apiRoutes";
+import { toast } from "@/hooks/use-toast";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -27,7 +28,13 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
-      window.location.href = "/login";
+      // window.location.href = "/login";
+      // Or use a toast notification to inform the user
+      toast({
+        title: "Unauthorized",
+        description: "Please log in to continue.",
+        variant: "destructive",
+      });
     }
     return Promise.reject(error);
   }

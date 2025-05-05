@@ -11,6 +11,7 @@ interface IAnswer extends Document {
   user: mongoose.Types.ObjectId;
   question: mongoose.Types.ObjectId;
   votes: number;
+  codeBlocks: string;
   createdAt: Date;
   updatedAt: Date;
   reports: IReport[];

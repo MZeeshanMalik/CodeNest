@@ -21,10 +21,23 @@ export const signup = async (data: SignupData) => {
 };
 
 export const logout = async () => {
-  const response = await axios.get(`${API_URL}/api/v1/users/logout`, {
-    withCredentials: true,
-  });
-  return response.data;
+  try {
+    const response = await axios.get(`${API_URL}/api/v1/users/logout`, {
+      withCredentials: true,
+    });
+    // If the logout was successful, remove user data from localStorage
+    if (response.data.status === "success" || response.status === 200) {
+      localStorage.removeItem("user");
+      // You might want to remove other user-related items as well
+      localStorage.removeItem("token");
+      localStorage.removeItem("userPreferences");
+      sessionStorage.removeItem("user");
+    }
+    return response.data;
+  } catch (error) {
+    console.error("Logout failed:", error);
+    throw error;
+  }
 };
 
 export const forgotPassword = async (email: string) => {

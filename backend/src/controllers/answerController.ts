@@ -49,8 +49,12 @@ export const createAnswer = catchAsync(
 // Update an answer
 export const updateAnswer = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log("Update answer route");
     const { answerId } = req.params;
-    const { content } = req.body;
+    const { content, codeBlocks } = req.body;
+    console.log(req.body);
+    console.log(req.params);
+    console.log("user:", req.user);
     const requestWithUser = req as RequestWithUser;
 
     if (!requestWithUser.user) {
@@ -74,6 +78,10 @@ export const updateAnswer = catchAsync(
     }
 
     answer.content = content;
+    if (codeBlocks !== null && codeBlocks !== undefined && codeBlocks !== "") {
+      answer.codeBlocks = codeBlocks || ""; // Update codeBlocks if provided
+      answer.updatedAt = new Date(); // Update updatedAt if codeBlocks is provided
+    }
     answer.updatedAt = new Date();
     await answer.save();
 
@@ -99,7 +107,7 @@ export const deleteAnswer = catchAsync(
 
     const userId = requestWithUser.user._id;
     const answer = await Answer.findById(answerId);
-
+    console.log("answer is", answerId);
     if (!answer) {
       return next(new AppError("Answer not found", 404));
     }
