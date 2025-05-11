@@ -49,10 +49,9 @@ export default function SearchBox() {
       setIsLoading(true);
       try {
         console.log("Searching with query:", debouncedQuery);
-        const { data } = await searchQuestions(debouncedQuery);
-        console.log("Full response data:", data);
-        console.log("Questions data:", data.data.questions);
-        setResults(data.data.questions);
+        const data = await searchQuestions(debouncedQuery);
+        console.log("Search results:", data);
+        setResults(data.questions.slice(0, 5)); // Limit to first 5 results for the dropdown
         setShowResults(true);
       } catch (error) {
         console.error("Search failed:", error);

@@ -1,0 +1,5 @@
+/* This is a base64 encoded simple placeholder image */
+
+// This file is a binary image file, but we're adding this comment
+// so GitHub Copilot can explain its purpose. This is a placeholder image
+// that will be shown when an image fails to load in the ImageUploader component.

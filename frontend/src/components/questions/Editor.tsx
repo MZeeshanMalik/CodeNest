@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -25,6 +26,7 @@ import {
   Undo,
   Redo,
 } from "lucide-react";
+import { div } from "framer-motion/client";
 
 // Add custom styles for code blocks and blockquotes
 const customStyles = `
@@ -293,6 +295,12 @@ const Editor = ({
   placeholder,
 }: EditorProps) => {
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Only initialize the editor after component mounts to prevent hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const editor = useEditor({
     extensions: [
@@ -328,24 +336,39 @@ const Editor = ({
       }
     },
     autofocus: false,
+    editorProps: {
+      attributes: {
+        class: "focus:outline-none",
+      },
+    },
+    // Prevent hydration mismatch by disabling immediate rendering
+    // This ensures the editor is only rendered client-side
+    immediatelyRender: false,
   });
-
   return (
     <div className="relative w-full">
       <style>{customStyles}</style>
       <div className="bg-white dark:bg-gray-800 rounded-lg">
-        <MenuBar editor={editor} />
-        <div
-          className="min-h-[200px] sm:min-h-[250px] md:min-h-[200px] h-[200px] sm:h-[150px] md:h-[200px] overflow-y-auto cursor-text"
-          onClick={() => editor?.commands.focus()}
-          style={{ outline: "none" }}
-        >
-          <EditorContent
-            editor={editor}
-            className="h-full px-4 sm:px-6 py-3 sm:py-4 prose dark:prose-invert max-w-none"
-            style={{ outline: "none" }}
-          />
-        </div>
+        {isMounted && editor ? (
+          <>
+            <MenuBar editor={editor} />
+            <div
+              className="min-h-[200px] sm:min-h-[250px] md:min-h-[200px] h-[200px] sm:h-[150px] md:h-[200px] overflow-y-auto cursor-text"
+              onClick={() => editor?.commands.focus()}
+              style={{ outline: "none" }}
+            >
+              <EditorContent
+                editor={editor}
+                className="h-full px-4 sm:px-6 py-3 sm:py-4 prose dark:prose-invert max-w-none"
+                style={{ outline: "none" }}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[200px] h-[200px] sm:h-[150px] md:h-[200px] flex items-center justify-center">
+            <p className="text-gray-400">Loading editor...</p>
+          </div>
+        )}
       </div>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-background/50">

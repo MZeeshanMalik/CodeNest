@@ -1,5 +1,4 @@
 "use client";
-import axios from "axios";
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { SyncLoader } from "react-spinners";
@@ -7,25 +6,23 @@ import { format } from "date-fns";
 import { MessageSquare, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/UI/button";
 import QuillEditor from "@/components/questions/Editor";
-// import { Textarea } from "@/components/UI/textarea";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import DOMPurify from "dompurify";
-
-// import rehypeHighlight from "rehype-highlight";
 import "highlight.js/styles/github-dark.css";
 import CodeEditor from "@/components/questions/CodeEditor";
 import { AnimatePresence } from "framer-motion";
 import { BoxReveal } from "@/components/magicui/box-reveal";
-import { postAnswer, voteAnswer } from "@/lib/answerQuery";
 import { useInView } from "react-intersection-observer";
 import { toast } from "@/hooks/use-toast";
 import VoteButton from "@/components/UI/VoteButton";
 import RelatedQuestions from "@/components/questions/RelatedQuestions";
+import QuestionSidebar from "@/components/questions/QuestionSidebar";
 import AnswerCard from "@/components/Answer/AnswerCard";
 import { usePostAnswer } from "@/hooks/useAnswer";
-// import { watch } from "react-hook-form";
-// import QuillEditor from "@/components/questions/Editor";
+import { useGetQuestionById } from "@/hooks/useQuestionDetail";
+import QuestionActions from "@/components/Question/QuestionActions";
+import { useAuth } from "@/services/AuthProvider";
 
 interface Question {
   _id: string;
@@ -60,71 +57,36 @@ interface Answer {
 
 const QuestionPage = () => {
   const { QuestionPage } = useParams();
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [loading, setLoading] = useState(true);
   const [answer, setAnswer] = useState("");
   const [code, setCode] = useState("");
   const [showEditor, setShowEditor] = useState(false);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const { ref, inView } = useInView();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const postAnswerMutation = usePostAnswer();
+  const { user } = useAuth();
 
+  console.log("Current authenticated user:", user);
+
+  // Use the custom hook to fetch question data
+  const {
+    data: question,
+    isLoading: loading,
+    isError,
+    error,
+    refetch,
+  } = useGetQuestionById(QuestionPage as string, page);
+
+  const hasMore = question?.pagination?.hasNextPage || false;
   const loadMoreAnswers = useCallback(async () => {
     if (!hasMore || !question) return;
-    try {
-      const { data } = await axios.get(
-        `http://127.0.0.1:3000/api/v1/question/${QuestionPage}`,
-        { params: { page: page + 1 } }
-      );
-
-      if (data.data.answers.length === 0) {
-        setHasMore(false);
-        return;
-      }
-
-      setQuestion((prev) =>
-        prev
-          ? {
-              ...prev,
-              answers: [...prev.answers, ...data.data.answers],
-              pagination: data.data.pagination,
-            }
-          : null
-      );
-      setPage((prev) => prev + 1);
-    } catch (error) {
-      console.error("Error loading more answers:", error);
-    }
-  }, [QuestionPage, page, hasMore, question]);
-
+    setPage((prev) => prev + 1);
+  }, [hasMore, question]);
   useEffect(() => {
     if (inView) {
       loadMoreAnswers();
     }
   }, [inView, loadMoreAnswers]);
-
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const { data } = await axios.get(
-          `http://127.0.0.1:3000/api/v1/question/${QuestionPage}`,
-          {
-            withCredentials: true,
-          }
-        );
-        setQuestion(data.data);
-        setHasMore(data.data.pagination.hasNextPage);
-      } catch (error) {
-        console.error("Error fetching question:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    getData();
-  }, [QuestionPage]);
-
   const handleAnswerSubmit = async () => {
     if (!question) return;
 
@@ -151,48 +113,88 @@ const QuestionPage = () => {
       setAnswer("");
       setCode("");
       setShowEditor(false);
+      refetch(); // Refetch the question data to get the new answer
+      toast({
+        title: "Success",
+        description: "Your answer has been posted",
+        variant: "default",
+      });
     } catch (error) {
       console.error("Answer submission failed:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post your answer. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-
   if (loading)
     return (
-      <div className="text-center p-8">
-        <SyncLoader color="#e02472" />
+      <div className="flex justify-center items-center min-h-[70vh] bg-gray-50 dark:bg-gray-900 transition-all duration-300">
+        <div className="text-center">
+          <SyncLoader color="#e02472" margin={6} size={12} />
+          <p className="mt-6 text-gray-600 dark:text-gray-400 animate-pulse">
+            Loading question details...
+          </p>
+        </div>
       </div>
     );
-  if (!question)
+
+  if (isError || !question)
     return (
-      <div className="text-center p-8 text-red-500">Question not found</div>
+      <div className="max-w-3xl mx-auto my-12 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md border border-red-200 dark:border-red-900">
+        <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+          Question not found
+        </h2>
+        <p className="text-gray-700 dark:text-gray-300">
+          The question you're looking for might have been removed or is
+          temporarily unavailable.
+        </p>
+        <Button
+          className="mt-6 bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => window.history.back()}
+        >
+          Go Back
+        </Button>
+      </div>
     );
 
   const handleEditorChange = (content: string) => {
     setAnswer(content);
   };
-
   return (
     <div className="max-w-7xl mx-auto p-2 sm:p-4 md:p-6">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            {/* Question Header */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 hover:shadow-md">
+            {/* Question Header */}{" "}
             <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+              {" "}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
                   {question?.title}
-                </h1>
+                </h1>{" "}
                 <div className="flex items-center gap-2">
                   <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                     Asked {format(new Date(question?.createdAt), "MMM d, yyyy")}
                   </span>
+                  {/* Debug information
+                  {console.log("Question Data:", {
+                    questionId: question._id,
+                    authorId: question.author?._id,
+                    authorDetails: question.author,
+                  })} */}
+                  <QuestionActions
+                    questionId={question._id}
+                    authorId={question?.user}
+                    title={question.title}
+                  />
                 </div>
               </div>
             </div>
-
             {/* Question Content */}
             <div className="p-4 sm:p-6">
               <div className="flex gap-4 sm:gap-6">
@@ -215,7 +217,6 @@ const QuestionPage = () => {
                       }}
                     />
                   </div>
-
                   {/* Code Block */}
                   {question?.codeBlocks && (
                     <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 sm:p-4">
@@ -232,11 +233,10 @@ const QuestionPage = () => {
                         </div>
                       </div>
                     </div>
-                  )}
-
+                  )}{" "}
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2">
-                    {question?.tags?.map((tag) => (
+                    {question?.tags?.map((tag: string) => (
                       <span
                         key={tag}
                         className="px-2 sm:px-3 py-1 bg-blue-50 text-blue-700 text-xs sm:text-sm rounded-full dark:bg-blue-900/50 dark:text-blue-300"
@@ -245,7 +245,6 @@ const QuestionPage = () => {
                       </span>
                     ))}
                   </div>
-
                   {/* Author Info */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-2 sm:gap-3">
@@ -266,7 +265,6 @@ const QuestionPage = () => {
               </div>
             </div>
           </div>
-
           {/* Answers Section */}
           <div className="mt-8">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -274,43 +272,23 @@ const QuestionPage = () => {
                 <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
                 {question?.answers?.length} Answers
               </h2>
-            </div>
-
+            </div>{" "}
             <div className="space-y-6">
-              {question?.answers?.map((answer) => (
+              {question?.answers?.map((answer: Answer) => (
                 <AnswerCard
                   key={answer._id}
                   answer={answer}
                   onUpdate={() => {
-                    // Refresh the question data
-                    const getData = async () => {
-                      try {
-                        const { data } = await axios.get(
-                          `http://127.0.0.1:3000/api/v1/question/${QuestionPage}`
-                        );
-                        setQuestion(data.data);
-                      } catch (error) {
-                        console.error("Error fetching question:", error);
-                      }
-                    };
-                    getData();
+                    // Refetch the question data with updated answers
+                    refetch();
                   }}
                   onDelete={() => {
-                    // Remove the answer from the state
-                    setQuestion((prev) => {
-                      if (!prev) return null;
-                      return {
-                        ...prev,
-                        answers: prev.answers.filter(
-                          (a) => a._id !== answer._id
-                        ),
-                      };
-                    });
+                    // Refetch the question data without the deleted answer
+                    refetch();
                   }}
                 />
               ))}
             </div>
-
             {/* Infinite scroll trigger */}
             <div ref={ref} className="h-8 sm:h-10">
               {hasMore && (
@@ -319,12 +297,12 @@ const QuestionPage = () => {
                 </div>
               )}
             </div>
-          </div>
-
+          </div>{" "}
           {/* Post Answer Section */}
-          <div className="mt-6 sm:mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="mt-6 sm:mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-300 hover:shadow-md">
             <div className="p-4 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
                 Your Answer
               </h2>
               <QuillEditor
@@ -362,7 +340,7 @@ const QuestionPage = () => {
                 <Button
                   onClick={handleAnswerSubmit}
                   disabled={isSubmitting}
-                  className="bg-btnColor hover:bg-btnColor/90 text-white"
+                  className="bg-btnColor hover:bg-btnColor/90 text-white px-6 py-2 rounded-md"
                 >
                   {isSubmitting ? (
                     <SyncLoader color="#f1f3f2" size={6} />
@@ -373,15 +351,16 @@ const QuestionPage = () => {
               </div>
             </div>
           </div>
-        </div>
-
+        </div>{" "}
         {/* Related Questions Sidebar */}
         <div className="lg:col-span-1">
-          <div className="sticky top-6">
+          <div className="sticky top-6 space-y-6">
             <RelatedQuestions
               currentQuestionId={question._id}
               currentTags={question.tags}
             />
+
+            <QuestionSidebar title="Top Questions" type="top" limit={5} />
           </div>
         </div>
       </div>

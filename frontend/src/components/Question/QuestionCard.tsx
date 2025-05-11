@@ -1,5 +1,8 @@
 import Link from "next/link";
 import VoteButton from "../UI/VoteButton";
+import { format } from "date-fns";
+import { MessageSquare } from "lucide-react";
+import DOMPurify from "dompurify";
 
 interface QuestionCardProps {
   question: {
@@ -19,12 +22,11 @@ interface QuestionCardProps {
 
 export default function QuestionCard({ question }: QuestionCardProps) {
   return (
-    <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex gap-4">
+    <div className="bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex gap-4 p-4">
         <VoteButton
           targetType="question"
           targetId={question._id}
-          // voteCount={question.votes}
           userId={question.user._id}
         />
         <div className="flex-1">
@@ -33,30 +35,44 @@ export default function QuestionCard({ question }: QuestionCardProps) {
               {question.title}
             </h2>
           </Link>
+
           <div
-            className="mt-2 text-gray-600 line-clamp-2 prose dark:prose-invert max-w-none"
+            className="mt-2 text-gray-600 line-clamp-2 prose dark:prose-invert max-w-none text-sm"
             dangerouslySetInnerHTML={{
-              __html: question.content,
+              __html: DOMPurify.sanitize(question.content),
             }}
           />
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">
-                by {question.user.name}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {question.tags.map((tag) => (
+              <Link
+                key={tag}
+                href={`/questions?tag=${tag}`}
+                className="px-2.5 py-0.5 text-xs bg-blue-50 text-blue-700 rounded-full hover:bg-blue-100"
+              >
+                {tag}
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="flex items-center">
+                <MessageSquare className="w-4 h-4 mr-1 text-gray-400" />
+                {question.answers?.length || 0}{" "}
+                {question.answers?.length === 1 ? "answer" : "answers"}
               </span>
-              <span className="text-sm text-gray-500">
-                {new Date(question.createdAt).toLocaleDateString()}
+              <span>
+                {question.votes}{" "}
+                {Math.abs(question.votes) === 1 ? "vote" : "votes"}
               </span>
             </div>
-            <div className="flex space-x-2">
-              {question.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded"
-                >
-                  {tag}
-                </span>
-              ))}
+
+            <div className="flex items-center gap-1">
+              <span className="hidden xs:inline">Asked by</span>
+              <span className="font-medium">{question.user.name}</span>
+              <span className="mx-1">on</span>
+              <span>{format(new Date(question.createdAt), "MMM d, yyyy")}</span>
             </div>
           </div>
         </div>

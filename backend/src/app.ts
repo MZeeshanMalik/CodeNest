@@ -12,6 +12,7 @@ const blogRouter = require("./router/blogRoute");
 const commentRouter = require("./router/commentRoute");
 const questionRouter = require("./router/questionRoute");
 const voteRouter = require("./router/voteRoute");
+const reportRouter = require("./router/reportRoute");
 // import imageRoutes from "./routes/imageRoutes";
 const imageRoutes = require("./router/imageRoutes");
 // import { isLoggedIn } from "./controllers/authenticationController";
@@ -41,6 +42,7 @@ app.use("/api/v1/question", questionRouter);
 console.log("answerRouter");
 app.use("/api/v1/answer", answerRouter);
 app.use("/api/v1/vote", voteRouter);
+app.use("/api/v1/report", reportRouter);
 
 app.use(express.json());
 

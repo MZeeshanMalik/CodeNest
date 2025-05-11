@@ -24,17 +24,27 @@ export default function SearchResults() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset questions when query changes
+  useEffect(() => {
+    setQuestions([]);
+    setPage(1);
+    setHasMore(true);
+    setError(null);
+  }, [query]);
 
   useEffect(() => {
     const fetchResults = async () => {
       if (!query) return;
       setLoading(true);
       try {
-        const { data } = await searchQuestions(query, page);
+        const data = await searchQuestions(query, page);
         setQuestions((prev) => [...prev, ...data.questions]);
-        setHasMore(data.pagination.hasNextPage);
+        setHasMore(data?.pagination.hasNextPage);
       } catch (error) {
         console.error("Error fetching search results:", error);
+        setError("Failed to fetch search results. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -51,10 +61,15 @@ export default function SearchResults() {
       </div>
     );
   }
-
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Search Results for "{query}"</h1>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
 
       {loading && questions.length === 0 ? (
         <div className="flex justify-center items-center h-64">
@@ -115,7 +130,9 @@ export default function SearchResults() {
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">No questions found</p>
+          <p className="text-gray-500">
+            No questions found matching your search criteria
+          </p>
         </div>
       )}
     </div>
