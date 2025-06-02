@@ -4,6 +4,7 @@ const app = express();
 import cookieParser from "cookie-parser";
 import path from "path";
 import cors from "cors";
+import fs from "fs";
 const globalErrorHandler = require("./middlewares/errorHandler");
 // import userRouter from "./router/userRoutes";
 const userRouter = require("./router/userRoutes");
@@ -13,8 +14,7 @@ const commentRouter = require("./router/commentRoute");
 const questionRouter = require("./router/questionRoute");
 const voteRouter = require("./router/voteRoute");
 const reportRouter = require("./router/reportRoute");
-// import imageRoutes from "./routes/imageRoutes";
-const imageRoutes = require("./router/imageRoutes");
+import imageRoutes from "./router/ImageRoutes";
 // import { isLoggedIn } from "./controllers/authenticationController";
 const authController = require("./controllers/authenticationController");
 const answerRouter = require("./router/AnswerRoute");
@@ -32,6 +32,14 @@ app.use(cookieParser());
 app.use(authController.isLoggedIn);
 // Serve static files from the "uploads" directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Ensure directories exist
+const questionImagesDir = path.join(__dirname, "uploads", "questionImages");
+if (!fs.existsSync(questionImagesDir)) {
+  fs.mkdirSync(questionImagesDir, { recursive: true });
+  console.log(`Created directory: ${questionImagesDir}`);
+}
+
 console.log("this is app.ts");
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/contact", contactRouter);

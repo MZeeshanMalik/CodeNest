@@ -68,7 +68,7 @@ export const getQuestion = catchAsync(
     const question = await Question.findOne(
       isObjectId ? { _id: query } : { slug: query }
     )
-      .populate("author", "name")
+      .populate("user", "name")
       .lean();
 
     if (!question) {
@@ -164,7 +164,7 @@ export const updateQuestion = catchAsync(
     const { query } = req.params;
     const { title, content, codeBlocks } = req.body;
     let { tags, existingImages } = req.body;
-
+    console.log(req);
     // Parse tags if it's a string (JSON)
     if (tags && typeof tags === "string") {
       try {
@@ -173,7 +173,7 @@ export const updateQuestion = catchAsync(
         console.error("Error parsing tags:", error);
       }
     }
-
+    console.log(existingImages);
     // Parse existingImages if it's a string (JSON)
     if (existingImages && typeof existingImages === "string") {
       try {
@@ -214,9 +214,16 @@ export const updateQuestion = catchAsync(
       console.log(`Processing ${uploadedFiles.length} new image files`);
       for (const file of uploadedFiles) {
         if (file.filename) {
+          console.log(`Adding new image: ${file.filename}`);
           newImagePaths.push(file.filename);
+        } else {
+          console.log(
+            `Skipping file without filename:`,
+            file.originalname || "unnamed file"
+          );
         }
       }
+      console.log(`Total new images to add: ${newImagePaths.length}`);
     }
 
     // Update question fields
@@ -256,12 +263,15 @@ export const updateQuestion = catchAsync(
       question.images = existingImages;
     } else {
       console.log("No existingImages provided, keeping current images");
-    }
-
-    // Add any newly uploaded images
+    } // Add any newly uploaded images
     if (newImagePaths.length > 0) {
       console.log("Adding new images:", newImagePaths);
-      question.images = [...(question.images || []), ...newImagePaths];
+      // Make sure question.images is always an array
+      const currentImages = Array.isArray(question.images)
+        ? question.images
+        : [];
+      question.images = [...currentImages, ...newImagePaths];
+      console.log("Final image list:", question.images);
     }
 
     // Update tags

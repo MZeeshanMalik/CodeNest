@@ -21,35 +21,36 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast";
 import { SyncLoader } from "react-spinners";
 import { useAuth } from "@/services/AuthProvider";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import AuthModal from "@/components/UI/AuthModal";
 import { Code, Image as ImageIcon, Tag, PenLine, Send } from "lucide-react";
 import QuestionSidebar from "@/components/questions/QuestionSidebar";
+import { s } from "framer-motion/client";
 
-// Helper function to safely debug nested objects
-const debugObjectStructure = (obj: any, name = "object") => {
-  if (!obj) {
-    console.log(`${name} is null or undefined`);
-    return;
-  }
+// // Helper function to safely debug nested objects
+// const debugObjectStructure = (obj: any, name = "object") => {
+//   if (!obj) {
+//     console.log(`${name} is null or undefined`);
+//     return;
+//   }
 
-  try {
-    console.log(`${name} keys:`, Object.keys(obj));
-    console.log(`${name} type:`, typeof obj);
+//   try {
+//     console.log(`${name} keys:`, Object.keys(obj));
+//     console.log(`${name} type:`, typeof obj);
 
-    if (Array.isArray(obj)) {
-      console.log(`${name} is an array with ${obj.length} items`);
-      if (obj.length > 0) {
-        console.log(`${name}[0] type:`, typeof obj[0]);
-        if (typeof obj[0] === "object" && obj[0] !== null) {
-          console.log(`${name}[0] keys:`, Object.keys(obj[0]));
-        }
-      }
-    }
-  } catch (error) {
-    console.error(`Error debugging ${name}:`, error);
-  }
-};
+//     if (Array.isArray(obj)) {
+//       console.log(`${name} is an array with ${obj.length} items`);
+//       if (obj.length > 0) {
+//         console.log(`${name}[0] type:`, typeof obj[0]);
+//         if (typeof obj[0] === "object" && obj[0] !== null) {
+//           console.log(`${name}[0] keys:`, Object.keys(obj[0]));
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     console.error(`Error debugging ${name}:`, error);
+//   }
+// };
 
 export default function EditQuestionPage() {
   const [content, setContent] = useState<string>("");
@@ -58,8 +59,11 @@ export default function EditQuestionPage() {
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [code, setCode] = useState<string>("");
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
   const { user } = useAuth();
   const params = useParams();
+  // const { questionId } = params as { questionId: string };
+  // const questionId = params.get("questionId") as string;
   const router = useRouter();
   const questionId = params.questionId as string;
 
@@ -76,18 +80,29 @@ export default function EditQuestionPage() {
   } = useForm<QuestionFormValues>({
     resolver: zodResolver(QuestionFormValuesSchema),
     mode: "onChange",
-  }); // Populate form with existing question data
+  });
   useEffect(() => {
     if (!question) return;
-    debugObjectStructure(question, "question");
-    if (question.tags) debugObjectStructure(question.tags, "question.tags");
-    if (question.images)
-      debugObjectStructure(question.images, "question.images");
-    setValue("title", question.title || "");
-    const questionContent = question.content || "";
-    setContent(questionContent);
-    setValue("content", questionContent);
+    // debugObjectStructure(question, "question");
+    // if (question.tags) debugObjectStructure(question.tags, "question.tags");
+    // if (question.images)
+    //   debugObjectStructure(question.images, "question.images");
+
+    // Reset form with all question data
+    const formData = {
+      title: question.title || "",
+      content: question.content || "",
+      tags: question.tags || [],
+      codeBlocks: question.codeBlocks || "",
+    };
+
+    // Reset the entire form
+    Object.entries(formData).forEach(([key, value]) => {
+      setValue(key as keyof QuestionFormValues, value);
+    }); // Update local state
+    setContent(question.content || "");
     const questionTags = question.tags || [];
+    setTags(questionTags);
     setValue("tags", questionTags);
     if (question.codeBlocks) {
       setValue("codeBlocks", question.codeBlocks);
@@ -97,12 +112,13 @@ export default function EditQuestionPage() {
     // Track existing images in local state
     if (question.images && question.images.length > 0) {
       setExistingImages(question.images);
+      setValue("existingImages", question.images, { shouldValidate: true });
     }
 
     // Images are handled by ImageUploader via existingImages prop
     console.log("Form populated with:", {
       title: question.title,
-      content: questionContent,
+      content: question.content,
       tags: questionTags,
       codeBlocks: question.codeBlocks,
       existingImages: question.images,
@@ -117,7 +133,7 @@ export default function EditQuestionPage() {
       userId: user._id,
       isEqual: question.user === user._id,
     });
-    if (question.user !== user._id) {
+    if (question.user._id !== user._id) {
       toast({
         title: "Unauthorized",
         description: "You can only edit your own questions",
@@ -126,80 +142,63 @@ export default function EditQuestionPage() {
       router.push(`/questions/${questionId}`);
     }
   }, [question, user, questionId, router]);
-  const onSubmit = (data: QuestionFormValues) => {
-    if (!user) {
-      setShowAuthModal(true);
-      toast({
-        title: "Sign in required",
-        description: "Please log in to edit a question.",
-        variant: "default",
-      });
-      return;
-    }
-
-    // Validate form data
-    if (!data.title || !data.content || !data.tags || data.tags.length === 0) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Make sure code blocks are included in the form data
-    data.codeBlocks = code;
-
-    // Include existing images in the submission
-    data.existingImages = existingImages;
-
-    // Debug form data before submission
-    console.log("Preparing question update:", {
-      ...data,
-      questionId,
-      tags: data.tags || [],
-      content: data.content
-        ? `Content length: ${data.content.length}`
-        : "No content",
-      images: data.images
-        ? `${data.images.length} new images`
-        : "No new images",
-      existingImages:
-        existingImages.length > 0
-          ? `${existingImages.length} existing images`
-          : "No existing images",
-      codeBlocks: data.codeBlocks
-        ? `Code length: ${data.codeBlocks.length}`
-        : "No code",
-    });
-    setLoading(true);
-    updateQuestionMutation.mutate(
-      { questionId, data },
-      {
-        onSuccess: () => {
-          toast({
-            title: "Success",
-            description: "✅ Question updated successfully!",
-            variant: "success",
-          });
-          router.push(`/questions/${questionId}`);
-        },
-        onError: (error) => {
-          console.error("Error updating question:", error);
-          toast({
-            title: "Error",
-            description:
-              (error as any)?.response?.data?.message || "An error occurred",
-            variant: "destructive",
-          });
-        },
-        onSettled: () => setLoading(false),
-      }
-    );
-  };
 
   const handleEditorChange = (content: string) => {
-    setValue("content", content, { shouldValidate: true });
+    setContent(content); // Update local state
+    setValue("content", content, { shouldValidate: true }); // Update form state
+  };
+  // Handle tag changes and ensure form state and local state are in sync
+  const handleTagsChange = (newTags: string[]) => {
+    setTags(newTags);
+    setValue("tags", newTags, { shouldValidate: true });
+  };
+
+  const onSubmit = async (data: QuestionFormValues) => {
+    try {
+      setLoading(true);
+      if (!user) {
+        setShowAuthModal(true);
+        return;
+      }
+      console.log("Submitting form with data:", {
+        formData: data,
+        currentTitle: data.title,
+        contentState: content,
+        contentFromData: data.content,
+        codeState: code,
+        codeFromData: data.codeBlocks,
+        newImages: images.length > 0 ? images.map((img) => img.name) : [],
+        existingImagesCount: existingImages.length,
+      });
+
+      const formData = {
+        ...data,
+        content: data.content, // Use form data directly
+        codeBlocks: data.codeBlocks, // Use form data directly
+        images: images, // Use the local state for images
+        existingImages: existingImages,
+      };
+
+      await updateQuestionMutation.mutateAsync({
+        questionId,
+        data: formData,
+      });
+
+      toast({
+        title: "Success",
+        description: "Question updated successfully",
+      });
+
+      router.push(`/questions/${questionId}`);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update question",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (isLoadingQuestion) {
@@ -219,7 +218,21 @@ export default function EditQuestionPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-3">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            <form
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                const submitter = (e.nativeEvent as SubmitEvent).submitter;
+                // Only handle submit if it's from an explicit submit button
+                if (
+                  submitter?.getAttribute("type") === "submit" &&
+                  submitter?.tagName === "BUTTON"
+                ) {
+                  handleSubmit(onSubmit)(e);
+                }
+              }}
+              className="space-y-8"
+            >
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <div className="space-y-6">
                   {/* Title Input */}
@@ -238,10 +251,10 @@ export default function EditQuestionPage() {
                   </div>
                   {/* Editor */}
                   <div>
-                    <Label>Question Details</Label>
-                    {typeof window !== "undefined" && (
+                    <Label>Question Details</Label>{" "}
+                    {typeof window !== "undefined" && question && (
                       <QuillEditor
-                        value={content}
+                        value={question.content || ""}
                         onChange={handleEditorChange}
                         placeholder="Explain your question in detail..."
                       />
@@ -265,15 +278,15 @@ export default function EditQuestionPage() {
                       }}
                       editable={true}
                     />
-                  </div>
+                  </div>{" "}
                   {/* Tags */}
                   <div>
                     <Label>Tags</Label>
                     <TagInput
-                      onTagsChange={(tags) =>
+                      tags={watch("tags")}
+                      setTags={(tags: string[]) =>
                         setValue("tags", tags, { shouldValidate: true })
                       }
-                      initialTags={question?.tags || []}
                     />
                     {errors.tags && (
                       <p className="text-red-500 text-sm mt-1">
@@ -285,9 +298,15 @@ export default function EditQuestionPage() {
                   <div>
                     <Label>Images (Optional)</Label>{" "}
                     <ImageUploader
-                      onImagesChange={(files) =>
-                        setValue("images", files, { shouldValidate: true })
-                      }
+                      images={images}
+                      setImages={setImages}
+                      onImagesChange={(files) => {
+                        console.log(
+                          `Received ${files.length} new images from ImageUploader`
+                        );
+                        setImages(files);
+                        setValue("images", files, { shouldValidate: true });
+                      }}
                       existingImages={question?.images || []}
                       onExistingImagesChange={(paths) => {
                         console.log(
@@ -295,7 +314,6 @@ export default function EditQuestionPage() {
                           paths
                         );
                         setExistingImages(paths);
-                        // Make sure form knows about this change too
                         setValue("existingImages", paths, {
                           shouldValidate: true,
                         });
@@ -341,12 +359,11 @@ export default function EditQuestionPage() {
             <QuestionSidebar />
           </div>
         </div>
-      </div>
-
+      </div>{" "}
       {/* Auth Modal */}
       <AuthModal
-        showAuthModal={showAuthModal}
-        setShowAuthModal={setShowAuthModal}
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
     </>
   );

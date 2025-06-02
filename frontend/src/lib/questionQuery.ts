@@ -144,6 +144,7 @@ export const updateQuestion = async (
   id: string,
   data: Partial<QuestionFormValues>
 ) => {
+  console.log("data before sending", data);
   try {
     const formData = new FormData();
 
@@ -156,11 +157,15 @@ export const updateQuestion = async (
     // Add existing images information
     if (data.existingImages) {
       formData.append("existingImages", JSON.stringify(data.existingImages));
-    }
-
-    // If images exist, append them
+    } // If images exist, append them
     if (data.images && data.images.length > 0) {
-      data.images.forEach((image) => {
+      console.log(`Adding ${data.images.length} new images to form data`);
+      data.images.forEach((image, index) => {
+        if (data.images) {
+          console.log(
+            `Adding image ${index + 1}/${data.images.length}: ${image.name}`
+          );
+        }
         formData.append(`images`, image); // Send each file
       });
     }

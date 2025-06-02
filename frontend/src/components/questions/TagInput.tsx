@@ -1,14 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
-const TagInput = ({
-  tags = [] as string[],
-  setTags,
-  initialTags,
-  onTagsChange,
-  label = "Add Tags",
-  placeholder = "Type & press Enter...",
-  className = "",
-}: {
+interface TagInputProps {
   tags?: string[];
   setTags?: React.Dispatch<React.SetStateAction<string[]>>;
   initialTags?: string[];
@@ -16,77 +8,94 @@ const TagInput = ({
   label?: string;
   placeholder?: string;
   className?: string;
+}
+
+const TagInput: React.FC<TagInputProps> = ({
+  tags = [],
+  setTags,
+  initialTags,
+  onTagsChange,
+  label = "Add Tags",
+  placeholder = "Type & press Enter...",
+  className = "",
 }) => {
   const maxTags = 10;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [localTags, setLocalTags] = useState<string[]>([]);
-  // Initialize tags from props on mount and when they change
+  const [inputValue, setInputValue] = useState("");
+  const [localTags, setLocalTags] = useState<string[]>(
+    initialTags || tags || []
+  );
+
+  // Update local state when props change
   useEffect(() => {
-    console.log("TagInput initializing with:", { initialTags, tags });
-    // Only set local tags if they're different from current state
-    if (
-      initialTags &&
-      initialTags.length > 0 &&
-      JSON.stringify(initialTags) !== JSON.stringify(localTags)
-    ) {
-      setLocalTags(initialTags);
-    } else if (
-      tags &&
-      tags.length > 0 &&
-      JSON.stringify(tags) !== JSON.stringify(localTags) &&
-      !initialTags
-    ) {
-      setLocalTags(tags);
-    }
-  }, [initialTags, tags, localTags]);
+    const incomingTags = initialTags || tags || [];
+    setLocalTags(incomingTags);
+  }, [initialTags, tags]);
 
-  // Update parent component when tags change - but only if triggered by user action
-  const notifiedRef = useRef(false);
-
-  useEffect(() => {
-    // Skip initial render or when tags are set from props
-    if (localTags.length > 0 && !notifiedRef.current) {
-      notifiedRef.current = true;
-      return;
-    }
-
-    console.log("TagInput updating parent with localTags:", localTags);
-    if (onTagsChange) {
-      onTagsChange(localTags);
-    }
-    if (setTags) {
-      setTags(localTags);
-    }
-  }, [localTags, onTagsChange, setTags]);
-  const addTag = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      const newTag = event.currentTarget.value.trim();
-
-      if (newTag && !localTags.includes(newTag) && localTags.length < maxTags) {
-        setLocalTags([...localTags, newTag]);
-        event.currentTarget.value = ""; // Clear input field
+  // Notify parent of changes
+  const updateParent = useCallback(
+    (newTags: string[]) => {
+      if (onTagsChange) {
+        onTagsChange(newTags);
       }
-    } else if (
-      event.key === "Backspace" &&
-      event.currentTarget.value === "" &&
-      localTags.length > 0
-    ) {
-      // Remove the last tag when pressing backspace on empty input
-      removeTag(localTags.length - 1);
-    }
-  };
+      if (setTags) {
+        setTags(newTags);
+      }
+    },
+    [onTagsChange, setTags]
+  );
+  // Handle removing tags
+  const removeTag = useCallback(
+    (index: number) => {
+      setLocalTags((prevTags) => {
+        const updatedTags = prevTags.filter((_, i) => i !== index);
+        updateParent(updatedTags);
+        return updatedTags;
+      });
+    },
+    [updateParent]
+  );
+  // Handle input change
+  const handleInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setInputValue(event.target.value);
+    },
+    []
+  );
 
-  const removeTag = (index: number) => {
-    if (localTags.length > 0) {
-      setLocalTags(localTags.filter((_, i) => i !== index));
-    }
-  };
+  // Handle adding tags
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        const newTag = inputValue.trim().toLowerCase();
 
-  const focusInput = () => {
+        if (
+          newTag &&
+          !localTags.includes(newTag) &&
+          localTags.length < maxTags
+        ) {
+          const updatedTags = [...localTags, newTag];
+          setLocalTags(updatedTags);
+          updateParent(updatedTags);
+          setInputValue(""); // Clear input after adding tag
+        }
+      } else if (
+        event.key === "Backspace" &&
+        inputValue === "" &&
+        localTags.length > 0
+      ) {
+        removeTag(localTags.length - 1);
+      }
+    },
+    [inputValue, localTags, maxTags, updateParent, removeTag]
+  );
+
+  const focusInput = useCallback(() => {
     inputRef.current?.focus();
-  };
+  }, []);
+
   return (
     <div className={`bg-white rounded-lg w-full mx-auto ${className}`}>
       <div className="flex justify-between items-center mb-2">
@@ -102,84 +111,45 @@ const TagInput = ({
         </span>
       </div>
 
-      {/* Tag Input Field */}
       <div
-        className={`border transition-all duration-200 rounded-md flex flex-wrap items-center gap-2 min-h-[50px] px-3 py-2 cursor-text
-          ${
-            isFocused
-              ? "border-blue-500 ring-1 ring-blue-500/20"
-              : "border-gray-300 hover:border-gray-400"
-          }
-          ${localTags.length >= maxTags ? "bg-gray-50" : "bg-white"}`}
+        className={`flex flex-wrap gap-2 p-2 border rounded-lg cursor-text min-h-[42px] transition-colors duration-200 ${
+          isFocused ? "border-blue-500" : "border-gray-300"
+        }`}
         onClick={focusInput}
       >
         {localTags.map((tag, index) => (
-          <div
-            key={index}
-            className="flex items-center bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md text-sm font-medium group transition-all duration-200 hover:bg-blue-100"
+          <span
+            key={`${tag}-${index}`}
+            className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded"
           >
-            <span className="max-w-[150px] truncate">{tag}</span>
+            {tag}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 removeTag(index);
               }}
-              className="ml-1.5 text-blue-400 hover:text-blue-600 transition-colors p-0.5 rounded-full hover:bg-blue-200/50 group-hover:bg-blue-200/80"
-              aria-label={`Remove tag ${tag}`}
+              className="ml-1 hover:text-blue-900"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-3.5 w-3.5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              ×
             </button>
-          </div>
-        ))}
-
-        {/* Input Field */}
-        {localTags.length < maxTags && (
-          <input
-            ref={inputRef}
-            type="text"
-            onKeyDown={addTag}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder={localTags.length === 0 ? placeholder : ""}
-            className="flex-1 min-w-[120px] text-sm text-gray-700 outline-none border-none bg-transparent py-1"
-          />
-        )}
-
-        {localTags.length === 0 && !isFocused && (
-          <span className="text-sm text-gray-400">{placeholder}</span>
-        )}
+          </span>
+        ))}{" "}
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={
+            localTags.length < maxTags ? placeholder : "Max tags reached"
+          }
+          disabled={localTags.length >= maxTags}
+          className="flex-1 outline-none bg-transparent min-w-[120px]"
+        />
       </div>
-
-      {/* Helpful hint */}
-      {localTags.length < maxTags && (
-        <p className="text-gray-500 text-xs mt-1.5 flex items-center">
-          <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md mr-1">
-            Enter
-          </kbd>
-          <span>to add a tag</span>
-          {localTags.length > 0 && (
-            <>
-              <span className="mx-1.5">•</span>
-              <kbd className="px-1.5 py-0.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-md mr-1">
-                Backspace
-              </kbd>
-              <span>to remove last tag</span>
-            </>
-          )}
-        </p>
-      )}
     </div>
   );
 };

@@ -16,58 +16,57 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
-// // Serve images from questionImages folder
-// router.get("/questionImages/:filename", (req: Request, res: Response): Response | void => {
-//   const filename = req.params.filename;
-//   let imagePath = path.join(__dirname, "../uploads/questionImages", filename);
+// Serve images from questionImages folder
+router.get("/questionImages/:filename", (req: Request, res: Response): void => {
+  const filename: string = req.params.filename;
+  let imagePath: string = path.join(
+    __dirname,
+    "../uploads/questionImages",
+    filename
+  );
 
-//   console.log(`Request for image: ${filename}`);
-//   console.log(`Looking for file at: ${imagePath}`);
-//   // Check if file exists
-//   if (!fs.existsSync(imagePath)) {
-//     console.log(`Image not found: ${imagePath}`);
+  console.log(`Request for image: ${filename}`);
+  console.log(`Looking for file at: ${imagePath}`);
 
-//     // Try alternative path
-//     const altPath = path.join(
-//       process.cwd(),
-//       "src/uploads/questionImages",
-//       filename
-//     );
-//     console.log(`Trying alternative path: ${altPath}`);
+  // Check if file exists
+  if (!fs.existsSync(imagePath)) {
+    console.log(`Image not found: ${imagePath}`);
 
-//     if (fs.existsSync(altPath)) {
-//       console.log(`Image found at alternative path: ${altPath}`);
-//       // We found the file at the alternative path
-//       // Set the image path to the alternative path
-//       imagePath = altPath;
-//     } else {
-//       // No image found
-//       return res.status(404).send("Image not found");
-//     }
-//   }
+    // Try alternative path
+    const altPath: string = path.join(
+      process.cwd(),
+      "src/uploads/questionImages",
+      filename
+    );
+    console.log(`Trying alternative path: ${altPath}`);
 
-//   // Determine MIME type based on file extension
-//   const ext = path.extname(filename).toLowerCase();
-//   let contentType = "image/jpeg";
+    if (fs.existsSync(altPath)) {
+      console.log(`Image found at alternative path: ${altPath}`);
+      imagePath = altPath;
+    } else {
+      // No image found
+      res.status(404).send("Image not found");
+      return;
+    }
+  }
 
-//   if (ext === ".png") contentType = "image/png";
-//   if (ext === ".gif") contentType = "image/gif";
-//   if (ext === ".webp") contentType = "image/webp";
+  // Determine MIME type based on file extension
+  const ext: string = path.extname(filename).toLowerCase();
+  let contentType: string = "image/jpeg";
 
-//   res.setHeader("Content-Type", contentType);
+  if (ext === ".png") contentType = "image/png";
+  if (ext === ".gif") contentType = "image/gif";
+  if (ext === ".webp") contentType = "image/webp";
 
-//   // Stream the file to the response
-//   const fileStream = fs.createReadStream(imagePath);
-//   fileStream.pipe(res);
-// });
+  res.setHeader("Content-Type", contentType);
+
+  // Stream the file to the response
+  const fileStream: fs.ReadStream = fs.createReadStream(imagePath);
+  fileStream.pipe(res);
+});
 
 // Upload image route
-router.post(
-  "/upload",
-  upload.single("image"), // Handle single file upload
-  compressImage, // Compress the uploaded image
-  uploadImage // Save and return the image URL
-);
+router.post("/upload", upload.single("image"), compressImage, uploadImage);
 
 // Delete image route
 router.delete("/delete-image/:fileName", deleteImage);
@@ -75,5 +74,5 @@ router.delete("/delete-image/:fileName", deleteImage);
 // Get all images route
 router.get("/", getAllImages);
 
-// export default router;
-module.exports = router;
+// Export router using ES modules
+export default router;
