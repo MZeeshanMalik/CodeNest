@@ -19,8 +19,6 @@ export interface RequestWithUser extends Request {
   user: UserTypes;
 }
 
-console.log(process.env.SECRET_KEY);
-
 interface JwtPayload {
   id: string;
   iat: number;

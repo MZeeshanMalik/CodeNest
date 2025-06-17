@@ -15,9 +15,6 @@ export const postQuestion = catchAsync(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const { title, content, codeBlocks } = req.body;
     const tags = JSON.parse(req.body.tags);
-    // console.log(typeof tags);
-    // if (!req.user || !req.user.id) {
-    // console.log(req);
 
     if (!res.locals.user) {
       return next(
@@ -106,27 +103,6 @@ export const getQuestion = catchAsync(
   }
 );
 
-// export const getQuestion = catchAsync(
-//   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-//     const { query } = req.params;
-//     console.log(query);
-
-//     // Check if query is a valid ObjectId (ID search)
-//     const isObjectId = /^[0-9a-fA-F]{24}$/.test(query);
-//     const searchQuery = isObjectId ? { _id: query } : { slug: query };
-
-//     const question = await Question.findOne(searchQuery);
-
-//     if (!question) {
-//       return res
-//         .status(404)
-//         .json({ status: "fail", message: "Question not found" });
-//     }
-
-//     return res.status(200).json({ status: "success", data: question });
-//   }
-// );
-
 // 🔴 DELETE a Question
 export const deleteQuestion = catchAsync(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -173,7 +149,6 @@ export const updateQuestion = catchAsync(
         console.error("Error parsing tags:", error);
       }
     }
-    console.log(existingImages);
     // Parse existingImages if it's a string (JSON)
     if (existingImages && typeof existingImages === "string") {
       try {
@@ -230,22 +205,14 @@ export const updateQuestion = catchAsync(
     question.title = title || question.title;
     question.content = content || question.content;
     question.codeBlocks = codeBlocks || question.codeBlocks; // Handle images - completely replace with what the client sent    if (existingImages !== undefined) {
-    console.log("Replacing image list with:", existingImages);
 
     // Delete removed files from server
     if (question.images && question.images.length > 0) {
-      console.log("Current question images:", question.images);
-
       // Ensure we have arrays (defensive coding)
       const oldImages = Array.isArray(question.images) ? question.images : [];
       const newImages = Array.isArray(existingImages) ? existingImages : [];
 
-      console.log("Old images:", oldImages);
-      console.log("New images to keep:", newImages);
-
       if (oldImages.length > newImages.length) {
-        console.log("Detected image deletion - removing files from storage");
-
         // Delete files that are no longer in the existingImages list
         try {
           const deletedFiles = await deleteRemovedFiles(
@@ -265,13 +232,11 @@ export const updateQuestion = catchAsync(
       console.log("No existingImages provided, keeping current images");
     } // Add any newly uploaded images
     if (newImagePaths.length > 0) {
-      console.log("Adding new images:", newImagePaths);
       // Make sure question.images is always an array
       const currentImages = Array.isArray(question.images)
         ? question.images
         : [];
       question.images = [...currentImages, ...newImagePaths];
-      console.log("Final image list:", question.images);
     }
 
     // Update tags
@@ -295,12 +260,8 @@ export const updateQuestion = catchAsync(
 // Search questions
 export const searchQuestions = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log("i am in search function");
     const { query, page = 1, limit = 10, sort = "newest", tag } = req.query;
     const searchQuery = query as string;
-
-    console.log("Search query received:", searchQuery); // Debug log
-    console.log("Sort:", sort, "Tag:", tag); // Log sorting and tag filtering
 
     // Allow empty query to retrieve all questions
     const findQuery: any = {};
@@ -366,6 +327,103 @@ export const searchQuestions = catchAsync(
     } catch (error) {
       console.error("Search error:", error); // Debug log
       return next(error);
+    }
+  }
+);
+
+// get related questions with each others
+
+export const relatedQuestions = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { tags, excludeId } = req.query;
+      const tagArray = (tags as string).split(",");
+
+      let questions: any[] = await Question.find({
+        tags: { $in: tagArray },
+        _id: { $ne: excludeId },
+      })
+        .sort({ votes: -1, createdAt: -1 })
+        .limit(5)
+        .populate("author", "name")
+        .select("title votes tags createdAt author");
+
+      if (questions.length === 0) {
+        console.log("No matching tags found, fetching recent questions");
+        questions = await Question.find({
+          _id: { $ne: excludeId },
+        })
+          .sort({ createdAt: -1 })
+          .limit(5)
+          .populate("author", "name")
+          .select("title votes tags createdAt author");
+      }
+
+      res.status(200).json({
+        success: true,
+        data: questions,
+      });
+    } catch (error) {
+      return next(new AppError("Error fetching related questions", 500));
+    }
+  }
+);
+
+// get top voted questions
+export const getTopVotedQuestions = catchAsync(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const questions = await Question.find()
+        .sort({ votes: -1, createdAt: -1 })
+        .limit(5)
+        .populate("author", "name")
+        .select("title votes tags createdAt author");
+
+      res.status(200).json({
+        success: true,
+        data: questions,
+      });
+    } catch (error) {
+      console.error("Error fetching top voted questions:", error);
+      return next(new AppError("Error fetching top voted questions", 500));
+    }
+  }
+);
+
+// get random questions
+export const getRandomQuestions = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { limit = 5 } = req.query;
+      const questions = await Question.aggregate([
+        { $sample: { size: Number(limit) } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $project: {
+            title: 1,
+            votes: 1,
+            tags: 1,
+            createdAt: 1,
+            "author.name": 1,
+          },
+        },
+      ]);
+
+      res.status(200).json({
+        success: true,
+        data: questions,
+      });
+    } catch (error) {
+      console.error("Error fetching random questions:", error);
+      return next(new AppError("Error fetching random questions", 500));
     }
   }
 );

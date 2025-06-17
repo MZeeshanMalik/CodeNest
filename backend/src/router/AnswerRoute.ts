@@ -14,9 +14,6 @@ const router = express.Router({ mergeParams: true });
 router.use(protect);
 router.patch("/updateAnswer/:answerId", updateAnswer);
 
-// Protected routes (require authentication)
-console.log("this is update answer route");
-
 // Get answers by question ID
 router.get("/question/:questionId", getQuestionAnswers);
 

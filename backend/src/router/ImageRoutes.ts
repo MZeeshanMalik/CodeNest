@@ -25,9 +25,6 @@ router.get("/questionImages/:filename", (req: Request, res: Response): void => {
     filename
   );
 
-  console.log(`Request for image: ${filename}`);
-  console.log(`Looking for file at: ${imagePath}`);
-
   // Check if file exists
   if (!fs.existsSync(imagePath)) {
     console.log(`Image not found: ${imagePath}`);
