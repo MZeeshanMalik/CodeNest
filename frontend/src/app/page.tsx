@@ -6,6 +6,9 @@ import FeatureSection from "@/components/Home/FeatureSection";
 import TestimonialSlider from "@/components/Home/Testimonial";
 import TopContribution from "@/components/Home/TopContribution";
 import WhyJoinUs from "@/components/Home/WhyJoinUs";
+import { FaQuestionCircle, FaReply, FaUsers } from "react-icons/fa";
+import { MdOutlineHowToVote } from "react-icons/md";
+import { SlBadge } from "react-icons/sl";
 
 function Home() {
   return (
