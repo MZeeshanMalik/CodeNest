@@ -9,7 +9,7 @@ const fs = require("fs");
 const router = express.Router();
 const path = require("path");
 // const userController = require("../controller/userConteroller");
-const authController = require("./../controllers/authenticationController.ts");
+const authController = require("./../controllers/authenticationController");
 // import { signup } from "../controllers/authenticationController";
 // import authController from "../controllers/authenticationController";
 // const reviewController = require("../controller/reviewController");
