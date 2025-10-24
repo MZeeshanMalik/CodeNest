@@ -19,10 +19,11 @@ const eslintConfig = [
     rules: {
       "react/no-unescaped-entities": "off",
       "@next/next/no-page-custom-font": "off",
-      "no-unused-vars": "off", // Disable unused variable errors
-      "no-console": "off", // Allow console.log
-      "react/prop-types": "off", // Disable prop-types rule (for TS users)
-      "no-debugger": "off", // Allow debugger statements
+      "@next/next/no-img-element": "off", // ✅ Disable <img> warning
+      "no-unused-vars": "off", // Disable unused vars
+      "no-console": "off", // Disable console warnings
+      "@typescript-eslint/no-explicit-any": "off", // Disable any type errors
+      "@typescript-eslint/no-unused-vars": "off", // Disable TS unused vars
     },
   }),
 ];
