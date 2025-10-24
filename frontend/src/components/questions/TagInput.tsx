@@ -27,11 +27,12 @@ const TagInput: React.FC<TagInputProps> = ({
     initialTags || tags || []
   );
 
-  // Update local state when props change
+  // Update local state when initialTags prop changes (only for controlled components)
   useEffect(() => {
-    const incomingTags = initialTags || tags || [];
-    setLocalTags(incomingTags);
-  }, [initialTags, tags]);
+    if (initialTags !== undefined) {
+      setLocalTags(initialTags);
+    }
+  }, [initialTags]);
 
   // Notify parent of changes
   const updateParent = useCallback(
