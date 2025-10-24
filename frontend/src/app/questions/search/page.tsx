@@ -1,8 +1,8 @@
+"use client";
 export const dynamic = "force-dynamic";
-("use client");
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
 import { searchQuestions } from "@/lib/questionQuery";
 import { SyncLoader } from "react-spinners";
 import Link from "next/link";
@@ -11,23 +11,30 @@ interface Question {
   _id: string;
   title: string;
   content: string;
-  user: {
-    name: string;
-  };
+  user: { name: string };
   createdAt: string;
   tags: string[];
 }
 
 export default function SearchResults() {
-  const searchParams = useSearchParams();
-  const query = searchParams.get("q");
+  const router = useRouter();
+  const [query, setQuery] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset questions when query changes
+  // Extract query param manually
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      setQuery(q);
+    }
+  }, [router.asPath]);
+
+  // Reset state when query changes
   useEffect(() => {
     setQuestions([]);
     setPage(1);
@@ -35,6 +42,7 @@ export default function SearchResults() {
     setError(null);
   }, [query]);
 
+  // Fetch search results
   useEffect(() => {
     const fetchResults = async () => {
       if (!query) return;
@@ -50,7 +58,6 @@ export default function SearchResults() {
         setLoading(false);
       }
     };
-
     fetchResults();
   }, [query, page]);
 
@@ -62,6 +69,7 @@ export default function SearchResults() {
       </div>
     );
   }
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Search Results for "{query}"</h1>
@@ -113,6 +121,7 @@ export default function SearchResults() {
               </div>
             </div>
           ))}
+
           {hasMore && (
             <div className="text-center mt-4">
               <button
