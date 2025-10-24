@@ -12,7 +12,7 @@ interface RelatedArticlesProps {
   articles: Article[];
 }
 
-export const RelatedArticles = ({ articles }: RelatedArticlesProps) => {
+const RelatedArticles = ({ articles }: RelatedArticlesProps) => {
   return (
     <section className="py-12">
       <h2 className="text-2xl font-bold mb-8">Related Articles</h2>
@@ -83,3 +83,5 @@ export const RelatedArticles = ({ articles }: RelatedArticlesProps) => {
     </section>
   );
 };
+
+export default RelatedArticles;
