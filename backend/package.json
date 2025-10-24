@@ -4,8 +4,8 @@
   "description": "This is for codenest website which is a question answer platform.",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
     "dev": "nodemon src/server.ts",
+    "build": "tsc",
     "start": "node dist/server.js"
   },
   "repository": {
