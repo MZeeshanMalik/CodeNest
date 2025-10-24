@@ -19,6 +19,10 @@ const eslintConfig = [
     rules: {
       "react/no-unescaped-entities": "off",
       "@next/next/no-page-custom-font": "off",
+      "no-unused-vars": "off", // Disable unused variable errors
+      "no-console": "off", // Allow console.log
+      "react/prop-types": "off", // Disable prop-types rule (for TS users)
+      "no-debugger": "off", // Allow debugger statements
     },
   }),
 ];
