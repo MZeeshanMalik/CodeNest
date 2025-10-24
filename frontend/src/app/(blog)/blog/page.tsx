@@ -1,9 +1,6 @@
 "use client";
 import { CommentSection } from "@/components/blogComponents/Comment";
-import {
-  Article,
-  RelatedArticles,
-} from "@/components/blogComponents/RelatedArticles";
+
 import { useState } from "react";
 
 interface Comment {
@@ -26,7 +23,7 @@ const BlogPage = () => {
       showReply: false,
     },
   ]);
-  const relatedArticles: Article[] = [
+  const relatedArticles = [
     {
       id: "1",
       title: "Web Development Trends in 2024",
