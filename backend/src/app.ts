@@ -19,6 +19,21 @@ import imageRoutes from "./router/ImageRoutes";
 const authController = require("./controllers/authenticationController");
 const answerRouter = require("./router/AnswerRoute");
 
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://code-nest-ruby.vercel.app"
+        : "http://localhost:3001", // Change this to your frontend URL
+    // "http://localhost:3001",
+    credentials: true, // Allows cookies to be sent
+  })
+);
+// body parser raeding data from body in req.body
+app.use(express.json({ limit: "10kb" }));
+app.use(cookieParser());
+app.use(authController.isLoggedIn);
+
 app.use((req, res, next) => {
   const start = Date.now();
 
@@ -35,21 +50,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-app.use(
-  cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? "https://code-nest-ruby.vercel.app"
-        : "http://localhost:3001", // Change this to your frontend URL
-    // "http://localhost:3001",
-    credentials: true, // Allows cookies to be sent
-  })
-);
-// body parser raeding data from body in req.body
-app.use(express.json({ limit: "10kb" }));
-app.use(cookieParser());
-app.use(authController.isLoggedIn);
 // Serve static files from the "uploads" directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -59,6 +59,7 @@ if (!fs.existsSync(questionImagesDir)) {
   fs.mkdirSync(questionImagesDir, { recursive: true });
   console.log(`Created directory: ${questionImagesDir}`);
 }
+app.options("*", cors());
 
 console.log("this is app.ts");
 app.use("/api/v1/users", userRouter);
