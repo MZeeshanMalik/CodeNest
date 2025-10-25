@@ -18,7 +18,7 @@ import imageRoutes from "./router/ImageRoutes";
 // import { isLoggedIn } from "./controllers/authenticationController";
 const authController = require("./controllers/authenticationController");
 const answerRouter = require("./router/AnswerRoute");
-
+console.log("🌍 Environment:", process.env.NODE_ENV);
 app.use(
   cors({
     origin:
