@@ -19,17 +19,23 @@ import imageRoutes from "./router/ImageRoutes";
 const authController = require("./controllers/authenticationController");
 const answerRouter = require("./router/AnswerRoute");
 
-// app.use(cors());
-// app.use(
-//   cors({
-//     origin: "https://code-nest-ruby.vercel.app", // Change this to your frontend URL
-//     credentials: true, // Allows cookies to be sent
-//   })
-// );
 app.use((req, res, next) => {
-  console.log(`[${req.method}] ${req.url}`);
+  const start = Date.now();
+
+  console.log("➡️ Request:", req.method, req.originalUrl);
+  console.log("Body:", req.body);
+
+  const originalSend = res.send;
+  res.send = function (body) {
+    const duration = Date.now() - start;
+    console.log("⬅️ Response:", res.statusCode, "in", duration + "ms");
+    console.log("Body:", body);
+    return originalSend.call(this, body);
+  };
+
   next();
 });
+
 app.use(
   cors({
     origin:
