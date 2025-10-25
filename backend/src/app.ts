@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import cors from "cors";
 import fs from "fs";
-const { globalErrorHandler } = require("./middlewares/errorHandler");
+import { globalErrorHandler } from "./middlewares/errorHandler";
 // import userRouter from "./router/userRoutes";
 const userRouter = require("./router/userRoutes");
 const contactRouter = require("./router/contactRoutes");

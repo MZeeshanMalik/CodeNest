@@ -97,7 +97,7 @@ interface ErrorRequestHandler {
 }
 
 // Error handler middleware
-const globalErrorHandler: ErrorRequestHandler = (
+export const globalErrorHandler: ErrorRequestHandler = (
   err: AppErrorTypes,
   req,
   res,
@@ -121,4 +121,4 @@ const globalErrorHandler: ErrorRequestHandler = (
   next();
 };
 
-module.exports = globalErrorHandler;
+// module.exports = globalErrorHandler;
