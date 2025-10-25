@@ -30,16 +30,16 @@ app.use((req, res, next) => {
   console.log(`[${req.method}] ${req.url}`);
   next();
 });
-// app.use(
-//   cors({
-//     origin:
-//       process.env.NODE_ENV === "production"
-//         ? "https://code-nest-ruby.vercel.app"
-//         : "http://localhost:3001", // Change this to your frontend URL
-//     // "http://localhost:3001",
-//     credentials: true, // Allows cookies to be sent
-//   })
-// );
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? "https://code-nest-ruby.vercel.app"
+        : "http://localhost:3001", // Change this to your frontend URL
+    // "http://localhost:3001",
+    credentials: true, // Allows cookies to be sent
+  })
+);
 // body parser raeding data from body in req.body
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
