@@ -33,21 +33,13 @@ app.use(
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 app.use(authController.isLoggedIn);
-
 app.use((req, res, next) => {
-  const start = Date.now();
-
-  console.log("➡️ Request:", req.method, req.originalUrl);
-  console.log("Body:", req.body);
-
-  const originalSend = res.send;
-  res.send = function (body) {
-    const duration = Date.now() - start;
-    console.log("⬅️ Response:", res.statusCode, "in", duration + "ms");
-    console.log("Body:", body);
-    return originalSend.call(this, body);
-  };
-
+  console.log(`📥 ${req.method} ${req.path}`);
+  console.log("📥 Origin:", req.headers.origin);
+  console.log("📥 Content-Type:", req.headers["content-type"]);
+  if (req.method === "POST") {
+    console.log("📥 Body:", req.body);
+  }
   next();
 });
 // Serve static files from the "uploads" directory
