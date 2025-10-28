@@ -31,7 +31,21 @@ app.use(
 );
 // body parser raeding data from body in req.body
 app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(
+  express.json({
+    type: ["application/json", "application/x-www-form-urlencoded"],
+  })
+);
 app.use(cookieParser());
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log("=".repeat(50));
+  console.log(`${req.method} ${req.path}`);
+  console.log("Headers:", req.headers);
+  console.log("Body:", req.body);
+  console.log("=".repeat(50));
+  next();
+});
 // app.use(authController.isLoggedIn);
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.path}`);
@@ -64,8 +78,6 @@ console.log("answerRouter");
 app.use("/api/v1/answer", answerRouter);
 app.use("/api/v1/vote", voteRouter);
 app.use("/api/v1/report", reportRouter);
-
-app.use(express.json());
 
 // app.use("/api/v1/users", (req: Request, res: Response, next) => {
 //   res.json({
