@@ -18,7 +18,6 @@ import imageRoutes from "./router/ImageRoutes";
 // import { isLoggedIn } from "./controllers/authenticationController";
 const authController = require("./controllers/authenticationController");
 const answerRouter = require("./router/AnswerRoute");
-import multer from "multer"
 console.log("🌍 Environment:", process.env.NODE_ENV);
 app.use(
   cors({
@@ -39,34 +38,6 @@ app.use(
   })
 );
 app.use(cookieParser());
-
-// ✅ Configure Multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, "uploads", "questionImages");
-    fs.mkdirSync(uploadDir, { recursive: true });
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if (allowedMimes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Invalid file type. Only images are allowed."));
-    }
-  },
-});
 
 app.use((req, res, next) => {
   console.log("=".repeat(50));

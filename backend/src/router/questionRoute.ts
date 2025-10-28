@@ -48,6 +48,8 @@ router.get("/:query", getQuestion);
 
 // Protected routes
 router.use(protect);
+
+console.log("request reached at question")
 router.post("/", upload.array("images", 5), postQuestion);
 router.put("/:query", upload.array("images", 5), updateQuestion);
 router.delete("/:query", deleteQuestion);
