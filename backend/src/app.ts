@@ -38,7 +38,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req, res, next) => {
   console.log("=".repeat(50));
   console.log(`${req.method} ${req.path}`);
   console.log("Headers:", req.headers);
