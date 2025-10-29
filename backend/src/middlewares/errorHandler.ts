@@ -119,7 +119,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
 
     sendErrorPro(error, req, res);
   }
-  next();
+  // next();
 };
 
 // module.exports = globalErrorHandler;
