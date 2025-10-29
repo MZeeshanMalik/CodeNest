@@ -105,12 +105,12 @@ export const globalErrorHandler: ErrorRequestHandler = (
 ) => {
   // console.log(err, res);
   console.log("Global error handler triggered:", err);
-  console.log(process.env.Node_ENV);
+  console.log(process.env.NODE_ENV);
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
-  if (process.env.Node_ENV === "devolpment") {
+  if (process.env.NODE_ENV === "devolpment") {
     sendErrorDev(err, req, res);
-  } else if (process.env.Node_ENV === "production" || undefined) {
+  } else if (process.env.NODE_ENV === "production" || undefined) {
     let error: AppErrorTypes = { ...err };
     console.log("Name of error is", error.name);
     error.message = err.message;
