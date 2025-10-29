@@ -110,7 +110,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
   err.status = err.status || "error";
   if (process.env.Node_ENV === "devolpment") {
     sendErrorDev(err, req, res);
-  } else if (process.env.Node_ENV === "production") {
+  } else if (process.env.Node_ENV === "production" || undefined) {
     let error: AppErrorTypes = { ...err };
     console.log("Name of error is", error.name);
     error.message = err.message;
