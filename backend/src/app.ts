@@ -48,7 +48,7 @@ app.use((req, res, next) => {
   console.log("=".repeat(50));
   next();
 });
-// app.use(authController.isLoggedIn);
+app.use(authController.isLoggedIn);
 app.use((req, res, next) => {
   console.log(`📥 ${req.method} ${req.path}`);
   console.log("📥 Origin:", req.headers.origin);
