@@ -96,6 +96,7 @@ app.use((err: any, req: Request, res: Response, next: any) => {
 //   res.json({ message: "Welcome to the API!" });
 //   next();
 // });
+app.use(globalErrorHandler);
 
 app.all("*", (req: Request, res: Response, next) => {
   res.status(404).json({
@@ -103,8 +104,6 @@ app.all("*", (req: Request, res: Response, next) => {
     message: `Can't find ${req.originalUrl} on this server!`,
   });
 });
-
-app.use(globalErrorHandler);
 
 // emodule.exports = app;
 export default app;
