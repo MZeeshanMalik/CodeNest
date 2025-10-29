@@ -15,6 +15,7 @@ const questionRouter = require("./router/questionRoute");
 const voteRouter = require("./router/voteRoute");
 const reportRouter = require("./router/reportRoute");
 import imageRoutes from "./router/ImageRoutes";
+import AppError from "./utils/AppError";
 // import { isLoggedIn } from "./controllers/authenticationController";
 const authController = require("./controllers/authenticationController");
 const answerRouter = require("./router/AnswerRoute");
@@ -96,14 +97,23 @@ app.use((err: any, req: Request, res: Response, next: any) => {
 //   res.json({ message: "Welcome to the API!" });
 //   next();
 // });
-app.use(globalErrorHandler);
 
-app.all("*", (req: Request, res: Response, next) => {
-  res.status(404).json({
-    status: "fail",
-    message: `Can't find ${req.originalUrl} on this server!`,
-  });
+// app.all("*", (req: Request, res: Response, next) => {
+//   res.status(404).json({
+//     status: "fail",
+//     message: `Can't find ${req.originalUrl} on this server!`,
+//   });
+// });
+app.all("*", (req, res, next) => {
+  // res.status(400).json({
+  //   status: 400,
+  //   message : `server cannot find ${req.originalUrl} on this adress`
+  // })
+  next(
+    new AppError(`server cannot find ${req.originalUrl} on this adress`, 404)
+  );
 });
+app.use(globalErrorHandler);
 
 // emodule.exports = app;
 export default app;
