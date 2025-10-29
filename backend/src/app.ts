@@ -79,6 +79,13 @@ console.log("answerRouter");
 app.use("/api/v1/answer", answerRouter);
 app.use("/api/v1/vote", voteRouter);
 app.use("/api/v1/report", reportRouter);
+// ✅ Add this BEFORE the catch-all 404
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.log("🔥 Error caught in middleware chain!");
+  console.log("🔥 Error:", err.message);
+  console.log("🔥 Status:", err.statusCode);
+  next(err); // Pass to global error handler
+});
 
 // app.use("/api/v1/users", (req: Request, res: Response, next) => {
 //   res.json({
