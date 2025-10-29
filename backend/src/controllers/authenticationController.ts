@@ -53,9 +53,7 @@ const createSendToken = function (
     httpOnly: true,
     // secure: process.env.NODE_ENV === "production", // Secure in production
     secure: true, // Secure in production
-    sameSite: process.env.NODE_ENV === "production" ? "lax" : "none", // Adjust sameSite
-    // sameSite: "none",
-    // sameSite: "none",
+    sameSite: "none",
   };
   res.cookie("jwt", token, cookieOptions);
 
