@@ -103,6 +103,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
   res,
   next
 ) => {
+  console.log(err, res);
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
   if (process.env.Node_ENV === "devolpment") {
