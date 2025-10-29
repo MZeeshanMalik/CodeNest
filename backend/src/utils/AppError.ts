@@ -11,7 +11,7 @@ class AppError extends Error implements AppErrorTypes {
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith("4") ? "failed" : "error";
     this.isOpreational = true;
-
+    console.log(statusCode, this.isOpreational, message);
     Error.captureStackTrace(this, this.constructor);
   }
 }

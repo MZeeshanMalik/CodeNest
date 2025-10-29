@@ -82,10 +82,6 @@ app.use("/api/v1/vote", voteRouter);
 app.use("/api/v1/report", reportRouter);
 
 app.all("*", (req, res, next) => {
-  // res.status(400).json({
-  //   status: 400,
-  //   message : `server cannot find ${req.originalUrl} on this adress`
-  // })
   next(
     new AppError(`server cannot find ${req.originalUrl} on this adress`, 404)
   );
