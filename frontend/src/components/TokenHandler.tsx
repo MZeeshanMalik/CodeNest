@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/context/AuthContext"; // import your context
+import { useAuth } from "@/services/AuthProvider"; // import your context
 
 export default function TokenHandler() {
   const router = useRouter();
