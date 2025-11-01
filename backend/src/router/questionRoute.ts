@@ -60,26 +60,29 @@ import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+// import cloudinary from "../config/cloudinary.ts";
+import cloudinary from "../config/cloudinaryConfig";
 
-// Ensure upload directory exists
-const uploadsDir = path.join(__dirname, "../uploads/questionImages");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+// // Ensure upload directory exists
+// const uploadsDir = path.join(__dirname, "../uploads/questionImages");
+// if (!fs.existsSync(uploadsDir)) {
+//   fs.mkdirSync(uploadsDir, { recursive: true });
+// }
 
-// Configure storage for uploaded images
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-questoin_image";
-    const ext = path.extname(file.originalname) || ".jpg";
-    cb(null, uniqueSuffix + ext);
-  },
-});
+// // Configure storage for uploaded images
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, uploadsDir);
+//   },
+//   filename: function (req, file, cb) {
+//     const uniqueSuffix = Date.now() + "-questoin_image";
+//     const ext = path.extname(file.originalname) || ".jpg";
+//     cb(null, uniqueSuffix + ext);
+//   },
+// });
 
-const upload = multer({ storage });
+// const upload = multer({ storage });
 
 import {
   postQuestion,
@@ -92,6 +95,19 @@ import {
   getTopVotedQuestions,
 } from "../controllers/questionController";
 import { protect } from "../controllers/authenticationController";
+
+// ✅ Configure Cloudinary storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "questionImages", // Cloudinary folder name
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    public_id: () => Date.now() + "-question_image",
+  } as any,
+});
+
+// Multer instance using Cloudinary storage
+const upload = multer({ storage });
 
 const router = express.Router();
 

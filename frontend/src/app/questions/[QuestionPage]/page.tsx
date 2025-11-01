@@ -305,7 +305,7 @@ const QuestionPage = () => {
                                   src={
                                     imagePath.startsWith("http")
                                       ? imagePath
-                                      : `${API_URL}/uploads/questionImages/${imagePath}`
+                                      : `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}/${imagePath}`
                                   }
                                   alt={`Question image ${index + 1}`}
                                   fill
@@ -379,7 +379,7 @@ const QuestionPage = () => {
                             src={
                               selectedImage.startsWith("http")
                                 ? selectedImage
-                                : `${API_URL}/uploads/questionImages/${selectedImage}`
+                                : `${process.env.NEXT_PUBLIC_CLOUDINARY_URL}/${selectedImage}`
                             }
                             alt="Full size image"
                             fill

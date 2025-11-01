@@ -16,7 +16,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const router = useRouter();
 
   const handleGoogleLogin = () => {
-    router.push("/api/auth/google");
+    router.push(`${NEXT_PUBLIC_APP_API_URL}/api/v1/users/auth/google`);
   };
 
   const handleGithubLogin = () => {

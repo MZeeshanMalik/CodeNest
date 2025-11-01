@@ -21,13 +21,14 @@ import { useAuth } from "@/services/AuthProvider";
 import AuthModal from "@/components/UI/AuthModal";
 import { Code, Image as ImageIcon, Tag, PenLine, Send } from "lucide-react";
 import QuestionSidebar from "@/components/questions/QuestionSidebar";
-
+import { useRouter } from "next/navigation";
 const Page = () => {
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<File[]>([]);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user } = useAuth();
+  const router = useRouter();
 
   const questionMutation = usePostQuestion();
   const {
@@ -52,16 +53,18 @@ const Page = () => {
       return;
     }
     setLoading(true);
-    console.log("data", data);
     setTimeout(() => {
       questionMutation.mutate(data, {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          console.log(res);
           toast({
             title: "Success",
             description: "✅ Question submitted successfully!",
             variant: "success",
           });
-          console.log("Question submitted successfully");
+          setTimeout(() => {
+            router.push(`/questions/${res?.data?._id}`);
+          }, 1000);
         },
         onError: (error) => {
           toast({
@@ -79,7 +82,6 @@ const Page = () => {
 
   const handleEditorChange = (content: string) => {
     setValue("content", content, { shouldValidate: true });
-    console.log("Received HTML from Editor:", content);
   };
 
   return (

@@ -14,6 +14,7 @@ import { deleteRemovedFiles } from "../utils/fileManagement";
 export const postQuestion = catchAsync(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const { title, content, codeBlocks } = req.body;
+    console.log(req.body)
     const tags = JSON.parse(req.body.tags);
 
     if (!res.locals.user) {

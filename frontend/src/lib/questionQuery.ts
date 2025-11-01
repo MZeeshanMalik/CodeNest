@@ -11,7 +11,7 @@ export const postQuestion = async (data: QuestionFormValues) => {
   formData.append("title", data.title);
   formData.append("content", data.content);
   formData.append("tags", JSON.stringify(data.tags));
-
+  formData.append("codeBlocks", data.codeBlocks)
   // If images exist, append them
   if (data.images && data.images.length > 0) {
     data.images.forEach((image, index) => {
