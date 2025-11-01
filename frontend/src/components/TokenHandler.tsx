@@ -28,7 +28,7 @@ export default function TokenHandler() {
         setTimeout(() => {
           router.replace("/");
           router.refresh();
-        }, 1000);
+        }, 3000);
       } catch (err) {
         console.error("Failed to parse user:", err);
       }
