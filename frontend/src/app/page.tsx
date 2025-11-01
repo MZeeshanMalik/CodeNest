@@ -1,7 +1,5 @@
 "use client";
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { HeorSection } from "@/components/Home/HeorSection";
 import CategoriesSection from "@/components/Home/CategoriesSection";
@@ -13,7 +11,9 @@ import TokenHandler from "@/components/TokenHandler";
 function Home() {
   return (
     <div className="bg-gray-50">
-      <TokenHandler />
+      <Suspense fallback={null}>
+        <TokenHandler />
+      </Suspense>
       <HeorSection />
       <FeatureSection />
       <TopContribution />
