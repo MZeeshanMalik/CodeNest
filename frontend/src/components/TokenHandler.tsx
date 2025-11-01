@@ -20,15 +20,8 @@ export default function TokenHandler() {
         // Save to localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
-
-        // 👇 Update context instantly
-        // login(user);
-
-        // Redirect and clean URL
-        setTimeout(() => {
-          router.replace("/");
-          router.refresh();
-        }, 3000);
+        router.replace("/");
+        window.location.reload();
       } catch (err) {
         console.error("Failed to parse user:", err);
       }
