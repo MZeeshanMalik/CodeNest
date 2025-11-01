@@ -2,12 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/services/AuthProvider"; // import your context
+// import { useAuth } from "@/services/AuthProvider"; // import your context
 
 export default function TokenHandler() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth(); // 👈 access login function from context
+  //   const { login } = useAuth(); // 👈 access login function from context
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -22,10 +22,13 @@ export default function TokenHandler() {
         localStorage.setItem("user", JSON.stringify(user));
 
         // 👇 Update context instantly
-        login(user);
+        // login(user);
 
         // Redirect and clean URL
-        router.replace("/");
+        setTimeout(() => {
+          router.replace("/");
+          router.refresh();
+        }, 1000);
       } catch (err) {
         console.error("Failed to parse user:", err);
       }
