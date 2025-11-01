@@ -33,7 +33,7 @@ export default function TokenHandler() {
         console.error("Failed to parse user:", err);
       }
     }
-  }, [searchParams, router, login]);
+  }, [searchParams, router]);
 
   return null;
 }
