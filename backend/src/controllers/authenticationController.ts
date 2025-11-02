@@ -124,7 +124,14 @@ exports.login = catchAsync(
     }
     //checking if user exists and password is correct
     const user = await User.findOne({ email }).select("+password");
-
+    if (!user.password) {
+      return next(
+        new AppError(
+          "Please use forgot password option or use oauth for login",
+          401
+        )
+      );
+    }
     if (!user || !(await user.correctPassword(password, user.password))) {
       return next(new AppError("Email or Password is not correct", 401));
     }

@@ -112,7 +112,7 @@ passport.use(
           user = await User.create({
             googleId: profile.id,
             email: email || `github_${profile.username}@noemail.com`, // Fallback email
-            name: profile.displayName,
+            name: profile.displayName || profile.username || "GitHub User",
             photo: profile.photos?.[0].value,
           });
         }
